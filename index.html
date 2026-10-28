@@ -48,6 +48,9 @@ a{color:inherit;text-decoration:none}
 .slide{min-width:100%;padding:28px 22px 44px;min-height:170px;display:flex;flex-direction:column;justify-content:center;gap:8px}
 .slide h2{font-size:clamp(20px,4.5vw,30px);font-weight:800;line-height:1.15;letter-spacing:-.02em}
 .slide p{font-size:13px;color:rgba(255,255,255,.75);max-width:46ch}
+.slide .lg{display:flex;flex-wrap:wrap;gap:6px;max-width:100%}
+.slide .lg span{background:#fff;border-radius:8px;height:34px;min-width:54px;padding:4px 8px;display:grid;place-items:center}
+.slide .lg img{height:100%;width:auto;max-width:84px;object-fit:contain;display:block}
 .slide a{align-self:flex-start;margin-top:6px;background:#fff;color:#0b1020;font-weight:700;font-size:13px;padding:8px 16px;border-radius:999px}
 .s0{background:radial-gradient(120% 140% at 85% 0%,#3b54e8 0%,#14205a 55%,#0b1020 100%)}
 .s1{background:radial-gradient(120% 140% at 10% 0%,#1d8fe0 0%,#103060 55%,#0b1020 100%)}
@@ -487,7 +490,8 @@ function normDB(d){
     popular: p.popular || 0
   })).filter(p => p.packages.length);
   const banners = (Array.isArray(d.banners) ? d.banners : []).map(b => ({
-    title: b.title || "", text: b.text || "", cta: b.cta || "", href: b.href || "#list", cls: b.cls || "s0", img: b.img || ""
+    title: b.title || "", text: b.text || "", cta: b.cta || "", href: b.href || "#list", cls: b.cls || "s0", img: b.img || "",
+    logos: (Array.isArray(b.logos) ? b.logos : []).filter(x => typeof x === "string" && x)
   })).filter(b => b.title);
   const sd = d.strips || {}, mk = (k, ttl) => ({title: (sd[k] && sd[k].title) || ttl, items: ((sd[k] && sd[k].items) || []).filter(x => x && x.img).map(x => ({img: x.img}))});
   return {products, banners, ticker: t, strips: {games: mk("games", "Game Populer"), pay: mk("pay", "Metode Pembayaran")}};
@@ -588,7 +592,7 @@ function renderBanner(){
   $("slides").innerHTML = bs.map(b => {
     const href = safeHref(b.href);
     const bg = b.img ? ` style="background-image:linear-gradient(90deg,rgba(5,8,20,.82),rgba(5,8,20,.3)),${cssUrl(b.img)};background-size:cover;background-position:center"` : "";
-    return `<div class="slide ${esc(b.cls)}"${bg}><h2>${esc(b.title)}</h2>${b.text ? `<p>${esc(b.text)}</p>` : ""}${b.cta ? `<a href="${href === "WA" ? waLink() : esc(href)}" ${/^#/.test(href) ? "" : 'target="_blank" rel="noopener"'}>${esc(b.cta)}</a>` : ""}</div>`;
+    return `<div class="slide ${esc(b.cls)}"${bg}><h2>${esc(b.title)}</h2>${b.text ? `<p>${esc(b.text)}</p>` : ""}${(b.logos || []).length ? `<div class="lg">${b.logos.map(u => `<span><img src="${esc(u)}" alt="" loading="lazy"></span>`).join("")}</div>` : ""}${b.cta ? `<a href="${href === "WA" ? waLink() : esc(href)}" ${/^#/.test(href) ? "" : 'target="_blank" rel="noopener"'}>${esc(b.cta)}</a>` : ""}</div>`;
   }).join("");
   $("dots").innerHTML = bs.length > 1 ? bs.map((_,i) => `<button aria-label="Slide ${i+1}" data-i="${i}"></button>`).join("") : "";
   goSlide(0);
@@ -961,7 +965,11 @@ function admBanners(){
       <div><label class="lbl">Warna latar</label><select class="in" data-f="cls">${BG.map(([v,l]) => `<option value="${v}"${b.cls===v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
     </div>
     <label class="lbl">Tautan tombol (#list, https://..., atau WA untuk chat admin)</label><input class="in" data-f="href" value="${esc(b.href)}" maxlength="200">
-    <label class="lbl">Foto banner</label>
+    <label class="lbl">Logo / foto tambahan di banner (bisa pilih banyak sekaligus)</label>
+    <div class="gal">${(b.logos || []).map((u,j) => `<div class="gi"><img src="${esc(u)}" alt=""><button type="button" data-act="rmLogo" data-i="${i}" data-j="${j}" aria-label="Hapus">✕</button></div>`).join("") || '<span class="empty-adm" style="padding:6px 0">Belum ada.</span>'}</div>
+    <input class="in" type="file" accept="image/*" multiple data-file="blogos" data-i="${i}" aria-label="Unggah logo banner ${i+1}">
+    <div class="row2"><input class="in" data-lu="${i}" placeholder="atau tempel URL logo"><button type="button" class="btn sec sm" data-act="addLogoUrl" data-i="${i}">Tambah URL</button></div>
+    <label class="lbl">Foto latar banner</label>
     <input class="in" type="file" accept="image/*" data-file="banner" data-i="${i}" aria-label="Unggah foto banner ${i+1}">
     <input class="in" data-f="img" placeholder="atau tempel URL gambar" value="${b.img && !b.img.startsWith("data:") ? esc(b.img) : ""}">
     <div class="actions" style="margin-top:0">${b.img ? `<button type="button" class="btn sec sm" data-act="rmBImg" data-i="${i}">Hapus foto</button>` : ""}<button type="button" class="btn danger sm" data-act="rmBanner" data-i="${i}">Hapus banner</button></div>
@@ -972,7 +980,7 @@ function admBanners(){
 function readBanners(){
   A.banners = [...document.querySelectorAll("#admBody .bcard")].map(c => {
     const g = f => c.querySelector(`[data-f="${f}"]`).value.trim();
-    return {title:g("title"), text:g("text"), cta:g("cta"), href:g("href") || "#list", cls:g("cls"), img:pickImg(g("img"), A.banners[+c.dataset.i].img)};
+    return {title:g("title"), text:g("text"), cta:g("cta"), href:g("href") || "#list", cls:g("cls"), img:pickImg(g("img"), A.banners[+c.dataset.i].img), logos:(A.banners[+c.dataset.i].logos || [])};
   });
 }
 
@@ -1082,10 +1090,12 @@ $("admBody").addEventListener("click", async e => {
   else if(act === "addPk"){ readProdForm(); A.edit.packages.push(["",0]); renderAdmin(); }
   else if(act === "rmPk"){ readProdForm(); A.edit.packages.splice(i, 1); if(!A.edit.packages.length) A.edit.packages.push(["",0]); renderAdmin(); }
   else if(act === "rmImg"){ readProdForm(); A.edit.img = ""; $("f_img").value = ""; A.edit.img = ""; renderAdmin(); }
+  else if(act === "rmLogo"){ readBanners(); A.banners[i].logos.splice(+b.dataset.j, 1); renderAdmin(); }
+  else if(act === "addLogoUrl"){ readBanners(); const u = document.querySelector(`[data-lu="${i}"]`).value.trim(); if(/^https?:\/\//.test(u)){ A.banners[i].logos.push(u); renderAdmin(); } else flash("Tempel URL gambar yang diawali https://"); }
   else if(act === "rmStrip"){ readStrips(); A.strips[b.dataset.k].items.splice(i, 1); renderAdmin(); }
   else if(act === "addStripUrl"){ readStrips(); const u = document.querySelector(`[data-u="${b.dataset.k}"]`).value.trim(); if(/^https?:\/\//.test(u)){ A.strips[b.dataset.k].items.push({img:u}); renderAdmin(); } else flash("Tempel URL gambar yang diawali https://"); }
   else if(act === "saveStrips"){ readStrips(); DB.strips = clone(A.strips); persist(); renderStrips(); renderAdmin(); flash("Galeri tersimpan."); }
-  else if(act === "addBanner"){ readBanners(); A.banners.push({title:"Banner baru", text:"", cta:"", href:"#list", cls:"s0", img:""}); renderAdmin(); }
+  else if(act === "addBanner"){ readBanners(); A.banners.push({title:"Banner baru", text:"", cta:"", href:"#list", cls:"s0", img:"", logos:[]}); renderAdmin(); }
   else if(act === "rmBanner"){ readBanners(); A.banners.splice(i, 1); renderAdmin(); }
   else if(act === "rmBImg"){ readBanners(); A.banners[i].img = ""; renderAdmin(); }
   else if(act === "saveBanners"){
@@ -1115,6 +1125,7 @@ $("admBody").addEventListener("change", async e => {
   const files = [...f.files], file = files[0]; f.value = ""; if(!file) return;
   try {
     if(f.dataset.file === "prod"){ readProdForm(); A.edit.img = await readImage(file, 640); renderAdmin(); }
+    else if(f.dataset.file === "blogos"){ readBanners(); const bi = +f.dataset.i; for(const fl of files) A.banners[bi].logos.push(await readImage(fl, 320)); renderAdmin(); }
     else if(f.dataset.file === "strip"){ readStrips(); const k = f.dataset.k; for(const fl of files) A.strips[k].items.push({img: await readImage(fl, k === "games" ? 480 : 320)}); renderAdmin(); }
     else if(f.dataset.file === "banner"){ readBanners(); A.banners[+f.dataset.i].img = await readImage(file, 1200); renderAdmin(); }
     else if(f.dataset.file === "import"){
