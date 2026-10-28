@@ -94,6 +94,30 @@ a{color:inherit;text-decoration:none}
 .pill[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .empty{color:var(--muted);font-size:14px;padding:24px 0}
 
+/* galeri berjalan */
+.strip{margin-top:22px}
+.strip h4{font-size:12px;letter-spacing:.22em;text-transform:uppercase;margin:0 0 12px;color:var(--text)}
+.mq{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.mq .tr{display:flex;gap:12px;width:max-content;animation:mqmove var(--d,30s) linear infinite}
+.mq:hover .tr{animation-play-state:paused}
+.mq .it{flex:none;height:84px;min-width:120px;border-radius:12px;overflow:hidden;background:#fff;display:grid;place-items:center;padding:8px}
+.mq .it.g{padding:0;height:96px;min-width:170px;background:var(--surface-2)}
+.mq .it img{height:100%;width:100%;object-fit:contain;display:block}
+.mq .it.g img{object-fit:cover}
+@keyframes mqmove{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.mq .tr{animation:none}}
+.gal{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.gal .gi{position:relative;width:74px;height:56px;border-radius:8px;background:#fff;overflow:hidden;border:1px solid var(--line)}
+.gal .gi img{width:100%;height:100%;object-fit:contain}
+.gal .gi button{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;font-size:11px;line-height:20px;padding:0}
+/* pembayaran */
+.qrbox{background:#fff;border-radius:14px;padding:10px;width:min(100%,270px);margin:0 auto 10px;aspect-ratio:1;display:grid;place-items:center}
+.qrbox img{width:100%;height:100%;object-fit:contain;display:block;image-rendering:pixelated}
+.qrsk{width:min(100%,270px);aspect-ratio:1;margin:14px auto;border-radius:14px;background:linear-gradient(90deg,var(--surface-2),var(--line),var(--surface-2));background-size:200% 100%;animation:sk 1.1s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.bdg{display:inline-block;font-size:11px;font-weight:800;border-radius:99px;padding:3px 9px;margin-top:6px}
+.bdg.p{background:#f59e0b22;color:#f59e0b}.bdg.s{background:#22c55e22;color:#22c55e}.bdg.x{background:#ef444422;color:#ef4444}.bdg.m{background:var(--surface);color:var(--muted)}
+.hist[data-oid]{cursor:pointer}
 /* footer */
 footer{margin-top:40px;padding:28px 0 100px}
 .foot{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px}
@@ -301,6 +325,7 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
         <div><h4>Informasi</h4><a href="#list">Cara Beli</a><a id="faq" href="#">Bantuan / FAQ</a><a href="#">Syarat Ketentuan</a><a href="#">Kebijakan Privasi</a></div>
         <div><h4>Layanan</h4><a href="#popSec">Produk Populer</a><a id="reseller" href="#" target="_blank" rel="noopener">Join Reseller</a></div>
       </div>
+      <div id="strips"></div>
       <div class="copy">© <span id="yr"></span> <span id="brand3"></span>. All rights reserved.</div>
     </div>
   </footer>
@@ -386,6 +411,7 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
 <section class="modal" id="modal" hidden role="dialog" aria-modal="true"></section>
 <div class="flash" id="flash" role="status" hidden></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 /* ================= EDIT BAGIAN INI ================= */
@@ -463,7 +489,8 @@ function normDB(d){
   const banners = (Array.isArray(d.banners) ? d.banners : []).map(b => ({
     title: b.title || "", text: b.text || "", cta: b.cta || "", href: b.href || "#list", cls: b.cls || "s0", img: b.img || ""
   })).filter(b => b.title);
-  return {products, banners, ticker: t};
+  const sd = d.strips || {}, mk = (k, ttl) => ({title: (sd[k] && sd[k].title) || ttl, items: ((sd[k] && sd[k].items) || []).filter(x => x && x.img).map(x => ({img: x.img}))});
+  return {products, banners, ticker: t, strips: {games: mk("games", "Game Populer"), pay: mk("pay", "Metode Pembayaran")}};
 }
 let DB = normDB((SB ? load("vs_cache", null) : load(KEY.db, null)) || PUBLISHED_DATA || clone(DEFAULT_DB));
 function persist(){
@@ -638,13 +665,66 @@ $("drawer").addEventListener("click", e => {
   else if(id === "logout") logout();
   else if(id === "goAdmin") openAdmin();
 });
+const PAYST = {};
+const expOf = o => o.exp || ((parseInt(String(o.id).slice(4)) || 0) + 10*60*1000);
+const ordState = o => !o.trx ? "m" : (PAYST[o.id] === "paid" || o.status === "paid") ? "s" : (PAYST[o.id] === "dead" || Date.now() > expOf(o)) ? "x" : "p";
+const BADGE = {m:["m","Manual"], s:["s","Sukses"], x:["x","Kedaluwarsa"], p:["p","Menunggu bayar"]};
+async function checkTrx(o){
+  if(!SB || !o.trx) return null;
+  const {data} = await SB.functions.invoke("qris", {body:{action:"check", transaction_id:o.trx}});
+  if(!data || !data.status) return null;
+  if(data.status === "paid") PAYST[o.id] = "paid";
+  else if(["expired","failed","cancelled"].includes(data.status)) PAYST[o.id] = "dead";
+  return data.status;
+}
+function histBody(list){
+  return list.length ? list.slice().reverse().map(o => { const st = ordState(o), [c, l] = BADGE[st];
+    return `<div class="hist" data-oid="${esc(o.id)}"><b>${esc(o.name)}</b>${esc(o.pkg)} × ${o.qty} — ${rp(o.total)}<br><small>${esc(o.id)} · ${esc(o.time)}</small><br><span class="bdg ${c}">${l}</span>${st === "p" ? ' <small>· ketuk untuk lihat QR</small>' : ""}</div>`; }).join("")
+    : `<p class="empty" style="text-align:center">Belum ada riwayat order.</p>`;
+}
 function showHist(){
   const list = getOrders();
-  const body = list.length
-    ? list.slice().reverse().map(o => `<div class="hist"><b>${esc(o.name)}</b>${esc(o.pkg)} × ${o.qty} — ${rp(o.total)}<br><small>${esc(o.id)} · ${esc(o.time)}</small></div>`).join("")
-    : `<p class="empty" style="text-align:center">Belum ada riwayat order.</p>`;
-  openModal(`<div class="hd"><h5>Riwayat Order</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="sub">${me() ? "Daftar pembelian akunmu di browser ini." : "Daftar pembelian sebagai tamu di browser ini."}</div>${body}`);
+  const head = `<div class="hd"><h5>Riwayat Order</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="sub">Ketuk pesanan untuk melihat detail.</div>`;
+  openModal(head + `<div id="histList">${histBody(list)}</div>`);
+  const todo = list.filter(o => o.trx && ordState(o) !== "s" && Date.now() - expOf(o) < 24*3600*1000).slice(-8);
+  Promise.all(todo.map(checkTrx)).then(() => { const el = document.getElementById("histList"); if(el) el.innerHTML = histBody(getOrders()); });
 }
+function qrImg(o){
+  try{ if(window.qrcode && o.qs){ const q = qrcode(0, "M"); q.addData(o.qs); q.make(); return q.createDataURL(8, 4); } }catch(_){}
+  return o.qurl || "";
+}
+function showPay(o){
+  o.exp = expOf(o);
+  const st = ordState(o), tok = o.id;
+  const sum = `<div class="sum"><div><span>Order ID</span><b>${esc(o.id)}</b></div><div><span>Produk</span><b>${esc(o.name)} · ${esc(o.pkg)} × ${o.qty}</b></div><div><span>Total bayar</span><b>${rp(o.total)}</b></div></div>`;
+  const back = `<button class="ghost" id="backHist">Riwayat Order</button>`;
+  const waBtn = `<a class="wa" href="${waLink("Halo admin, pembayaran QRIS sudah masuk.\nOrder ID: " + o.id + "\nProduk: " + o.name + " - " + o.pkg + "\nTotal: " + rp(o.total))}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center">Konfirmasi ke WhatsApp</a>`;
+  if(st === "s") openModal(`<div class="done"><div class="ok">Pembayaran berhasil ✓</div><small style="color:var(--muted)">Kirim bukti ke admin lewat WhatsApp.</small>${sum}${waBtn}${back}<button class="ghost" data-close style="margin-top:8px">Tutup</button></div>`);
+  else if(st === "x") openModal(`<div class="done"><div class="ok" style="color:#ef4444">QRIS kedaluwarsa</div><small style="color:var(--muted)">Waktu bayar sudah habis. Silakan buat pesanan baru.</small>${sum}${back}<button class="ghost" data-close style="margin-top:8px">Tutup</button></div>`);
+  else if(st === "m") openModal(`<div class="done"><div class="ok">Pesanan manual</div><small style="color:var(--muted)">Dikonfirmasi oleh admin.</small>${sum}${back}<button class="ghost" data-close style="margin-top:8px">Tutup</button></div>`);
+  else {
+    const img = qrImg(o);
+    openModal(`<div class="done"><div class="ok">Scan untuk bayar</div><small style="color:var(--muted)">Sisa waktu <b id="cd">--:--</b>. Halaman otomatis berubah saat pembayaran masuk.</small>${sum}
+      <div class="qrbox">${img ? `<img src="${esc(img)}" alt="QRIS">` : "QR tidak tersedia"}</div>
+      ${img.startsWith("data:") ? `<a class="ghost" style="display:block;text-decoration:none;margin-bottom:10px" href="${esc(img)}" download="qris-${esc(o.id)}.gif">Simpan gambar QR</a>` : ""}
+      <div id="payst" data-oid="${esc(tok)}" style="text-align:center;margin-bottom:10px;font-weight:600">Menunggu pembayaran...</div>${back}<button class="ghost" data-close style="margin-top:8px">Tutup</button></div>`);
+    const tick = () => { const cd = document.getElementById("cd"), ps = document.getElementById("payst");
+      if(!ps || ps.dataset.oid !== tok) return false;
+      const left = Math.max(0, o.exp - Date.now()); cd.textContent = String(Math.floor(left/60000)).padStart(2,"0") + ":" + String(Math.floor(left%60000/1000)).padStart(2,"0");
+      return true; };
+    tick(); let busy = false;
+    const iv = setInterval(async () => {
+      if(!tick()) return clearInterval(iv);
+      if(Date.now() > o.exp + 5000){ clearInterval(iv); showPay(o); return; }
+      if(busy) return; busy = true; const r = await checkTrx(o); busy = false;
+      if(r === "paid" || ordState(o) === "x"){ clearInterval(iv); const ps = document.getElementById("payst"); if(ps && ps.dataset.oid === tok) showPay(o); }
+    }, 3000);
+  }
+}
+$("modal").addEventListener("click", e => {
+  const h = e.target.closest(".hist[data-oid]"); if(h){ const o = getOrders().find(x => x.id === h.dataset.oid); if(o) showPay(o); return; }
+  if(e.target.closest("#backHist")) showHist();
+});
 
 /* ---------- masuk / daftar ---------- */
 function openAuth(mode){
@@ -756,32 +836,17 @@ $("buy").onclick = async () => {
   const order = {id:"ORD-" + Date.now(), name:p.name, pkg:pk[0], qty:S.qty, total, pay:S.pay,
                  time:new Date().toLocaleString("id-ID"), buyer:name, wa:$("wa").value.trim()};
   if(SB && S.pay === "QRIS"){
-    $("buy").disabled = true; $("err").textContent = "Membuat QRIS...";
+    $("buy").disabled = true; $("err").textContent = "";
+    openModal(`<div class="done"><div class="ok">Membuat QRIS...</div><small style="color:var(--muted)">Mohon tunggu sebentar.</small><div class="qrsk"></div></div>`);
     const {data:q, error:qe} = await SB.functions.invoke("qris", {body:{action:"create", pid:S.pid, pkg:S.pkg, qty:S.qty, order_id:order.id, name, phone:order.wa}});
     $("buy").disabled = false;
     if(qe || !q || !q.success){
       let m = (q && q.error) || (qe && qe.message) || "coba lagi";
       try{ if(qe && qe.context && qe.context.json){ const j = await qe.context.json(); m = j.error || j.message || JSON.stringify(j); } }catch(_){}
-      $("err").textContent = "Gagal membuat QRIS: " + m; return; }
-    $("err").textContent = "";
-    order.trx = q.transaction_id; order.status = "pending"; order.total = q.amount;
-    addOrder(order);
-    $("who").textContent = "@" + curName();
-    openModal(`<div class="done"><div class="ok">Scan untuk bayar</div><small style="color:var(--muted)">Berlaku 10 menit. Halaman ini otomatis berubah saat pembayaran masuk.</small>
-      <div class="sum"><div><span>Order ID</span><b>${esc(order.id)}</b></div><div><span>Produk</span><b>${esc(p.name)} · ${esc(pk[0])} × ${order.qty}</b></div>
-      <div><span>Total bayar</span><b>${rp(q.amount)}</b></div></div>
-      <img src="${esc(q.qris_url)}" alt="QRIS" style="width:100%;max-width:260px;background:#fff;border-radius:12px;padding:8px;display:block;margin:0 auto 12px">
-      <div id="payst" style="text-align:center;margin-bottom:10px;font-weight:600">Menunggu pembayaran...</div>
-      <button class="ghost" data-close>Tutup</button></div>`);
-    const t0 = Date.now(), iv = setInterval(async () => {
-      if(!document.getElementById("payst") || Date.now() - t0 > 11*60*1000) return clearInterval(iv);
-      const {data:c} = await SB.functions.invoke("qris", {body:{action:"check", transaction_id:q.transaction_id}});
-      const el = document.getElementById("payst"); if(!el || !c) return;
-      if(c.status === "paid"){ clearInterval(iv); el.textContent = "Pembayaran berhasil ✓ Kirim bukti ke admin lewat WhatsApp."; el.style.color = "#22c55e";
-        el.insertAdjacentHTML("afterend", `<a class="wa" href="${waLink("Halo admin, pembayaran QRIS sudah masuk.\nOrder ID: " + order.id + "\nProduk: " + p.name + " - " + pk[0] + "\nTotal: " + rp(q.amount))}" target="_blank" rel="noopener" style="text-decoration:none;display:block;text-align:center;margin-bottom:10px">Konfirmasi ke WhatsApp</a>`); }
-      else if(c.status === "expired" || c.status === "failed" || c.status === "cancelled"){ clearInterval(iv); el.textContent = "QRIS kedaluwarsa. Buat pesanan lagi."; el.style.color = "#ef4444"; }
-    }, 4000);
-    return;
+      closeAll(); $("err").textContent = "Gagal membuat QRIS: " + m; return; }
+    Object.assign(order, {trx:q.transaction_id, qs:q.qris_string || "", qurl:q.qris_url || "", exp:Date.now() + 10*60*1000, status:"pending", total:q.amount});
+    addOrder(order); $("who").textContent = "@" + curName();
+    showPay(order); return;
   }
   addOrder(order);
   $("who").textContent = "@" + curName();
@@ -806,16 +871,16 @@ const pickImg = (url, old) => url ? url : ((old || "").startsWith("data:") ? old
 function openAdmin(){
   if(!isAdmin()) return;
   closeAll();
-  A = {tab:"prod", edit:null, banners:clone(DB.banners)};
+  A = {tab:"prod", edit:null, banners:clone(DB.banners), strips:clone(DB.strips)};
   $("homeView").hidden = true; $("productView").hidden = true; $("adminView").hidden = false;
   window.scrollTo(0,0); renderAdmin();
 }
 $("admBack").onclick = showHome;
 
 function renderAdmin(){
-  $("admTabs").innerHTML = [["prod","Produk"],["ban","Banner"],["tick","Teks jalan"],["data","Data"]]
+  $("admTabs").innerHTML = [["prod","Produk"],["ban","Banner"],["gal","Galeri"],["tick","Teks jalan"],["data","Data"]]
     .map(([k,l]) => `<button class="atab" data-tab="${k}" aria-pressed="${A.tab===k}">${l}</button>`).join("");
-  $("admBody").innerHTML = {prod:admProducts, ban:admBanners, tick:admTicker, data:admData}[A.tab]();
+  $("admBody").innerHTML = {prod:admProducts, ban:admBanners, gal:admStrips, tick:admTicker, data:admData}[A.tab]();
   if(A.tab === "tick") mountTicker($("tkPrev"), readTicker());
 }
 
@@ -911,6 +976,22 @@ function readBanners(){
   });
 }
 
+/* --- galeri berjalan --- */
+function admStrips(){
+  const blk = ([k, hint]) => { const g = A.strips[k]; return `<div class="bcard" data-k="${k}">
+    <label class="lbl">Judul bagian</label><input class="in" data-f="title" value="${esc(g.title)}" maxlength="40">
+    <div class="gal">${g.items.map((x,j) => `<div class="gi"><img src="${esc(x.img)}" alt=""><button type="button" data-act="rmStrip" data-k="${k}" data-i="${j}" aria-label="Hapus">✕</button></div>`).join("") || '<span class="empty-adm" style="padding:6px 0">Belum ada gambar.</span>'}</div>
+    <label class="lbl">${hint}</label>
+    <input class="in" type="file" accept="image/*" multiple data-file="strip" data-k="${k}" aria-label="Unggah gambar">
+    <div class="row2"><input class="in" data-u="${k}" placeholder="atau tempel URL gambar"><button type="button" class="btn sec sm" data-act="addStripUrl" data-k="${k}">Tambah URL</button></div>
+  </div>`; };
+  return `<div style="margin-top:16px">${blk(["games","Foto game populer (bisa pilih banyak sekaligus)"])}${blk(["pay","Logo metode pembayaran (bisa pilih banyak sekaligus)"])}
+    <div class="actions"><button class="btn" data-act="saveStrips">Simpan galeri</button></div></div>`;
+}
+function readStrips(){
+  document.querySelectorAll("#admBody .bcard[data-k]").forEach(c => { A.strips[c.dataset.k].title = c.querySelector('[data-f="title"]').value.trim() || A.strips[c.dataset.k].title; });
+}
+
 /* --- teks jalan --- */
 function admTicker(){
   const t = DB.ticker;
@@ -961,7 +1042,19 @@ function readImage(file, max){
   });
 }
 
+function renderStrips(){
+  const el = $("strips"); if(!el) return;
+  const st = DB.strips || {};
+  el.innerHTML = [["games","g"],["pay",""]].map(([k,c]) => {
+    const g = st[k]; if(!g || !g.items.length) return "";
+    const one = g.items.map(x => `<div class="it ${c}"><img src="${esc(x.img)}" alt="" loading="lazy"></div>`).join("");
+    const reps = Math.max(2, Math.ceil(10 / g.items.length));
+    const half = one.repeat(reps);
+    return `<div class="strip"><h4>${esc(g.title)}</h4><div class="mq"><div class="tr" style="--d:${Math.max(18, g.items.length * reps * 3)}s">${half}${half}</div></div></div>`;
+  }).join("");
+}
 function refreshAll(){
+  renderStrips();
   renderBanner(); mountTicker($("ticker"), DB.ticker);
   renderRail(); renderPills(); renderGrid();
 }
@@ -969,7 +1062,7 @@ function refreshAll(){
 /* --- event panel admin --- */
 $("admTabs").addEventListener("click", e => {
   const b = e.target.closest(".atab"); if(!b) return;
-  A.tab = b.dataset.tab; A.edit = null; A.banners = clone(DB.banners); renderAdmin();
+  A.tab = b.dataset.tab; A.edit = null; A.banners = clone(DB.banners); A.strips = clone(DB.strips); renderAdmin();
 });
 $("admBody").addEventListener("click", async e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
@@ -989,6 +1082,9 @@ $("admBody").addEventListener("click", async e => {
   else if(act === "addPk"){ readProdForm(); A.edit.packages.push(["",0]); renderAdmin(); }
   else if(act === "rmPk"){ readProdForm(); A.edit.packages.splice(i, 1); if(!A.edit.packages.length) A.edit.packages.push(["",0]); renderAdmin(); }
   else if(act === "rmImg"){ readProdForm(); A.edit.img = ""; $("f_img").value = ""; A.edit.img = ""; renderAdmin(); }
+  else if(act === "rmStrip"){ readStrips(); A.strips[b.dataset.k].items.splice(i, 1); renderAdmin(); }
+  else if(act === "addStripUrl"){ readStrips(); const u = document.querySelector(`[data-u="${b.dataset.k}"]`).value.trim(); if(/^https?:\/\//.test(u)){ A.strips[b.dataset.k].items.push({img:u}); renderAdmin(); } else flash("Tempel URL gambar yang diawali https://"); }
+  else if(act === "saveStrips"){ readStrips(); DB.strips = clone(A.strips); persist(); renderStrips(); renderAdmin(); flash("Galeri tersimpan."); }
   else if(act === "addBanner"){ readBanners(); A.banners.push({title:"Banner baru", text:"", cta:"", href:"#list", cls:"s0", img:""}); renderAdmin(); }
   else if(act === "rmBanner"){ readBanners(); A.banners.splice(i, 1); renderAdmin(); }
   else if(act === "rmBImg"){ readBanners(); A.banners[i].img = ""; renderAdmin(); }
@@ -1016,9 +1112,10 @@ $("admBody").addEventListener("click", async e => {
 });
 $("admBody").addEventListener("change", async e => {
   const f = e.target; if(!f.dataset.file) return;
-  const file = f.files[0]; f.value = ""; if(!file) return;
+  const files = [...f.files], file = files[0]; f.value = ""; if(!file) return;
   try {
     if(f.dataset.file === "prod"){ readProdForm(); A.edit.img = await readImage(file, 640); renderAdmin(); }
+    else if(f.dataset.file === "strip"){ readStrips(); const k = f.dataset.k; for(const fl of files) A.strips[k].items.push({img: await readImage(fl, k === "games" ? 480 : 320)}); renderAdmin(); }
     else if(f.dataset.file === "banner"){ readBanners(); A.banners[+f.dataset.i].img = await readImage(file, 1200); renderAdmin(); }
     else if(f.dataset.file === "import"){
       const txt = (await file.text()).replace(/^[^{]*/, "").replace(/;\s*$/, "");
@@ -1036,7 +1133,7 @@ $("admBody").addEventListener("input", e => {
 
 /* ---------- init ---------- */
 refreshUser(); refreshAll();
-if(SB){ (async () => {
+if(SB){ const warm = () => SB.functions.invoke("qris", {body:{action:"ping"}}).catch(() => {}); setTimeout(warm, 1500); document.addEventListener("visibilitychange", () => { if(!document.hidden) warm(); }); (async () => {
   const {data:s} = await SB.auth.getSession();
   if(s.session){ ME = mapUser(s.session.user); await loadOrders(); refreshUser(); }
   await syncRemote();
