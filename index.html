@@ -103,10 +103,10 @@ a{color:inherit;text-decoration:none}
 .mq{display:block;width:100%;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .mq .tr{display:flex;gap:12px;width:max-content;animation:mqmove var(--d,30s) linear infinite}
 .mq:hover .tr{animation-play-state:paused}
-.mq .it{flex:none;height:72px;width:140px;border-radius:12px;overflow:hidden;background:#fff;display:grid;place-items:center;padding:8px}
-.mq .it.g{padding:0;height:96px;width:170px;background:var(--surface-2)}
-.mq .it img{height:100%;width:100%;object-fit:contain;display:block}
-.mq .it.g img{object-fit:cover}
+.mq .it{flex:none;height:72px;width:140px;border-radius:12px;overflow:hidden;background:#fff;position:relative}
+.mq .it.g{height:96px;width:170px;background:var(--surface-2)}
+.mq .it img{position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);max-width:none;object-fit:contain;display:block}
+.mq .it.g img{inset:0;width:100%;height:100%;object-fit:cover}
 @keyframes mqmove{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.mq .tr{animation:none}}
 .gal{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
