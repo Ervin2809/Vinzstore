@@ -836,7 +836,7 @@ function openAuth(mode){
       <div class="err" id="a_err" role="alert"></div>
       <button class="btn" type="submit" style="width:100%;margin-top:8px">${reg ? "Daftar" : "Masuk"}</button>
     </form>
-    <p class="alt">${reg ? "Sudah punya akun?" : "Belum punya akun?"} <a href="#" data-m="${reg ? "login" : "reg"}" style="color:var(--accent-2);font-weight:700">${reg ? "Masuk" : "Daftar"}</a></p>`);
+    <p class="alt">${reg ? "Sudah punya akun?" : "Belum punya akun?"} <a href="#" data-m="${reg ? "login" : "reg"}" style="color:var(--accent-2);font-weight:700">${reg ? "Masuk" : "Daftar"}</a></p>${!reg && SB ? '<p class="alt" style="margin-top:6px"><a href="#" id="a_forgot" style="color:var(--accent-2);font-weight:700">Lupa password?</a></p>' : ""}`);
   $(reg ? "a_name" : "a_email").focus();
 }
 $("modal").addEventListener("click", e => {
@@ -856,8 +856,10 @@ document.addEventListener("submit", async e => {
   if(pw.length < 6) return err.textContent = "Password minimal 6 karakter.";
   if(SB){
     let r = reg ? await SB.auth.signUp({email, password:pw, options:{data:{name}}}) : await SB.auth.signInWithPassword({email, password:pw});
+    if(reg && !r.error && r.data && r.data.user && Array.isArray(r.data.user.identities) && r.data.user.identities.length === 0) return err.textContent = "Email ini sudah terdaftar. Pilih Masuk, atau pakai Lupa password.";
     if(reg && !r.error && !r.data.session) r = await SB.auth.signInWithPassword({email, password:pw});
-    if(r.error) return err.textContent = /invalid login/i.test(r.error.message) ? "Email atau password salah." : r.error.message;
+    if(r.error){ const m = r.error.message || "";
+      return err.textContent = /invalid login/i.test(m) ? (reg ? "Gagal masuk setelah daftar. Coba pilih Masuk." : "Email atau password salah. Belum punya akun? Pilih Daftar.") : /not confirmed/i.test(m) ? "Email belum dikonfirmasi. Cek emailmu atau hubungi admin." : /already registered/i.test(m) ? "Email ini sudah terdaftar. Pilih Masuk." : m; }
     if(!r.data.session) return err.textContent = "Cek emailmu untuk konfirmasi, lalu masuk.";
     ME = mapUser(r.data.session.user); await loadOrders(); loadMyReseller();
   } else {
@@ -875,6 +877,20 @@ document.addEventListener("submit", async e => {
   closeAll(); refreshUser();
   if(!$("productView").hidden) fillBuyer();
   flash(isAdmin() ? "Masuk sebagai admin." : reg ? "Akun dibuat. Selamat datang, " + name + "." : "Berhasil masuk.");
+});
+$("modal").addEventListener("click", async e => {
+  if(e.target.closest("#a_forgot")){
+    e.preventDefault(); const em = $("a_email").value.trim().toLowerCase(), err = $("a_err");
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ err.textContent = "Isi emailmu dulu di kolom Email."; return; }
+    const {error} = await SB.auth.resetPasswordForEmail(em, {redirectTo: location.origin + location.pathname});
+    err.textContent = error ? error.message : "Jika email terdaftar, link reset password sudah dikirim. Cek inbox dan spam.";
+  }
+  else if(e.target.closest("#np_save")){
+    const pw = $("np_pw").value; if(pw.length < 6){ $("np_err").textContent = "Password minimal 6 karakter."; return; }
+    const {error} = await SB.auth.updateUser({password:pw});
+    if(error){ $("np_err").textContent = error.message; return; }
+    closeAll(); flash("Password diganti. Kamu sudah masuk.");
+  }
 });
 function logout(){
   if(SB){ SB.auth.signOut(); ME = null; ORD = []; RSME = null; $("mReseller").style.display = "none"; }
@@ -950,7 +966,7 @@ $("buy").onclick = async () => {
   if(SB && S.pay === "QRIS"){
     $("buy").disabled = true; $("err").textContent = "";
     openModal(`<div class="done"><div class="ok">Membuat QRIS...</div><small style="color:var(--muted)">Mohon tunggu sebentar.</small><div class="qrsk"></div></div>`);
-    const {data:q, error:qe} = await SB.functions.invoke("qris", {body:{action:"create", pid:S.pid, pkg:S.pkg, qty:S.qty, order_id:order.id, name, phone:order.wa, reseller:order.reseller}});
+    const {data:q, error:qe} = await SB.functions.invoke("qris", {body:{action:"create", pid:S.pid, pname:p.name, pkgName:pk[0], pkg:S.pkg, qty:S.qty, order_id:order.id, name, phone:order.wa, reseller:order.reseller}});
     $("buy").disabled = false;
     if(qe || !q || !q.success){
       let m = (q && q.error) || (qe && qe.message) || "coba lagi";
@@ -1320,7 +1336,7 @@ function admData(){
   const kb = Math.round(JSON.stringify(DB).length / 1024);
   return `<div class="panel" style="margin-top:16px"><h4>Data toko</h4>
     <p class="note">Perubahan tersimpan di browser ini (${kb} KB). Agar tampil untuk semua pengunjung, klik <b>Salin data publish</b>, lalu ganti baris <code>const PUBLISHED_DATA = null;</code> di file HTML dengan hasil salinan dan upload ulang.</p>
-    <div class="actions" style="margin-top:0"><button class="btn" data-act="copyData">Salin data publish</button><button class="btn sec" data-act="dlData">Unduh .json</button>
+    <div class="actions" style="margin-top:0">${SB ? '<button class="btn" data-act="pushServer">Kirim data ke server sekarang</button>' : ""}<button class="btn" data-act="copyData">Salin data publish</button><button class="btn sec" data-act="dlData">Unduh .json</button>
       <label class="btn sec" style="cursor:pointer">Impor data<input type="file" accept=".json,.js,.txt,application/json" data-file="import" hidden></label></div>
     <textarea class="in" id="d_out" rows="6" readonly hidden style="margin-top:12px"></textarea>
     <div class="actions"><button class="btn danger" data-act="resetData">Reset ke data bawaan</button></div></div>`;
@@ -1389,6 +1405,15 @@ $("admBody").addEventListener("click", async e => {
   else if(act === "addPk"){ readProdForm(); A.edit.packages.push(["",0]); renderAdmin(); }
   else if(act === "rmPk"){ readProdForm(); A.edit.packages.splice(i, 1); if(!A.edit.packages.length) A.edit.packages.push(["",0]); renderAdmin(); }
   else if(act === "rmImg"){ readProdForm(); A.edit.img = ""; $("f_img").value = ""; A.edit.img = ""; renderAdmin(); }
+  else if(act === "pushServer"){
+    if(!SB){ flash("Supabase belum aktif."); return; }
+    if(!isAdmin() || RS_ACTIVE){ flash("Hanya admin di toko utama yang bisa mengirim data."); return; }
+    const ts = new Date().toISOString();
+    SB.from("store_data").upsert({id:1, data:DB, updated_at:ts}).then(({error}) => {
+      if(error){ flash("Gagal: " + error.message); return; }
+      save("vs_cache", DB); save("vs_ver2", String(new Date(ts).getTime())); flash("Data terkirim ke server: " + DB.products.length + " produk.");
+    });
+  }
   else if(act === "saveShop"){
     const g = k => $("sh_" + k).value.trim(), wa = waNum(g("wa"));
     if(wa.length < 9){ flash("Nomor WhatsApp tidak valid."); return; }
@@ -1478,6 +1503,7 @@ refreshUser(); refreshAll();
 if(SB){ const warm = () => SB.functions.invoke("qris", {body:{action:"ping"}}).catch(() => {}); setTimeout(warm, 1500); document.addEventListener("visibilitychange", () => { if(!document.hidden) warm(); }); (async () => {
   const {data:s} = await SB.auth.getSession();
   if(s.session){ ME = mapUser(s.session.user); await loadOrders(); refreshUser(); }
+  SB.auth.onAuthStateChange(ev => { if(ev === "PASSWORD_RECOVERY") openModal(`<div class="hd"><h5>Password baru</h5><button class="x" data-close aria-label="Tutup">✕</button></div><input class="in" id="np_pw" type="password" placeholder="Password baru (minimal 6 karakter)" autocomplete="new-password"><div class="err" id="np_err" role="alert"></div><button class="btn" id="np_save" type="button" style="width:100%;margin-top:8px">Simpan password</button>`); });
   loadMyReseller();
   await Promise.all([syncRemote(), loadResellerShop()]);
   document.addEventListener("visibilitychange", () => { if(!document.hidden) syncRemote(); });
