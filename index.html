@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0b1020">
+<script>try{var __t=localStorage.getItem("vinz_theme");if(__t==="light"||__t==="dark")document.documentElement.setAttribute("data-theme",__t)}catch(e){}</script>
 <title>Vinzstore — Digital Store Otomatis 24 Jam</title>
+<meta name="description" content="Toko digital otomatis 24 jam. Pilih produk, bayar dengan QRIS, pesanan diproses cepat.">
+<meta property="og:title" content="Vinzstore — Digital Store Otomatis 24 Jam">
+<meta property="og:description" content="Toko digital otomatis 24 jam. Bayar dengan QRIS, proses cepat.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%234f6bff'/%3E%3Ctext x='32' y='45' font-size='38' font-family='Arial' font-weight='800' text-anchor='middle' fill='white'%3EV%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -97,15 +103,39 @@ a{color:inherit;text-decoration:none}
 .pill[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .empty{color:var(--muted);font-size:14px;padding:24px 0}
 
+textarea.in{resize:vertical;min-height:110px;font:inherit;line-height:1.5}
+.info{white-space:pre-wrap;line-height:1.65;color:var(--muted);font-size:14px;max-height:62vh;overflow:auto;margin:6px 0 14px}
+.ordtools{display:flex;gap:8px;margin:12px 0}.ordtools .in{flex:1}
+.ordact{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.ordact a,.ordact button{font-size:12px;font-weight:700;border-radius:99px;padding:6px 12px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);text-decoration:none}
+/* tema terang */
+html[data-theme="light"]{--bg:#f3f5fb;--surface:#ffffff;--surface-2:#eceff8;--line:#d9dff0;--text:#141b34;--muted:#5a6483;--accent-2:#3b54e8;color-scheme:light}
+html[data-theme="light"] .top{background:rgba(255,255,255,.92)}
+html[data-theme="light"] .bar{background:rgba(255,255,255,.96)}
+html[data-theme="light"] .help{background:#fff;color:var(--text)}
+html[data-theme="light"] .tile{background:#e4e9f6}
+html[data-theme="light"] .overlay{background:rgba(20,27,52,.35)}
+.thm{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:rgba(3,6,16,.72);backdrop-filter:blur(4px)}
+.thm .box{width:min(100%,360px);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px;text-align:center;color:var(--text)}
+.thm h3{margin:0 0 6px;font-size:19px}.thm p{margin:0 0 16px;color:var(--muted);font-size:13.5px}
+.thm .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.thm button{border:2px solid var(--line);border-radius:16px;padding:14px 8px;font-weight:800;font-size:14px;display:grid;gap:8px;place-items:center;color:inherit;background:var(--surface-2)}
+.thm button i{width:100%;height:54px;border-radius:10px;border:1px solid rgba(128,128,128,.35)}
+.thm button[data-t="light"] i{background:linear-gradient(#fff 0 35%,#e3e8f6 35%)}
+.thm button[data-t="dark"] i{background:linear-gradient(#18223a 0 35%,#0b1020 35%)}
+.thm button:focus-visible{outline:3px solid var(--accent)}
+.rsbox{max-height:68vh;overflow:auto;padding-right:2px}
+.rsbox .bcard{margin-bottom:10px}
+.rsbox img.qp{width:140px;height:140px;object-fit:contain;background:#fff;border-radius:10px;margin-top:8px;display:block}
 /* galeri berjalan */
 .gx{margin-top:22px;display:block;min-width:0}
 .gx h4{font-size:12px;letter-spacing:.22em;text-transform:uppercase;margin:0 0 12px;color:var(--text)}
 .mq{display:block;width:100%;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .mq .tr{display:flex;gap:12px;width:max-content;animation:mqmove var(--d,30s) linear infinite}
 .mq:hover .tr{animation-play-state:paused}
-.mq .it{flex:none;height:72px;width:140px;border-radius:12px;overflow:hidden;background:#fff;position:relative}
+.mq .it{flex:none;height:48px;width:92px;border-radius:12px;overflow:hidden;background:#fff;position:relative}
 .mq .it.g{height:96px;width:170px;background:var(--surface-2)}
-.mq .it img{position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);max-width:none;object-fit:contain;display:block}
+.mq .it img{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);max-width:none;object-fit:contain;display:block}
 .mq .it.g img{inset:0;width:100%;height:100%;object-fit:cover}
 @keyframes mqmove{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.mq .tr{animation:none}}
@@ -325,7 +355,7 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
         <a id="soCh" href="#" target="_blank" rel="noopener" aria-label="Saluran">CH</a>
       </div>
       <div class="cols">
-        <div><h4>Informasi</h4><a href="#list">Cara Beli</a><a id="faq" href="#">Bantuan / FAQ</a><a href="#">Syarat Ketentuan</a><a href="#">Kebijakan Privasi</a></div>
+        <div><h4>Informasi</h4><a href="#" data-info="how">Cara Beli</a><a href="#" data-info="faq">Bantuan / FAQ</a><a href="#" data-info="terms">Syarat Ketentuan</a><a href="#" data-info="privacy">Kebijakan Privasi</a></div>
         <div><h4>Layanan</h4><a href="#popSec">Produk Populer</a><a id="reseller" href="#" target="_blank" rel="noopener">Join Reseller</a></div>
       </div>
       <div id="strips"></div>
@@ -406,6 +436,8 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
   <div class="hd"><h5>MENU</h5><button class="x" id="closeD" aria-label="Tutup">✕</button></div>
   <div id="drawerBody"></div>
   <nav class="menu">
+    <a id="mReseller" href="#" role="button" style="display:none">Panel Reseller</a>
+    <a id="mTheme" href="#" role="button">Ganti tema</a>
     <a id="mWa" href="#" target="_blank" rel="noopener">WhatsApp Admin</a>
     <a id="mTg" href="#" target="_blank" rel="noopener">Telegram Admin</a>
     <a id="mCh" href="#" target="_blank" rel="noopener">Saluran Admin</a>
@@ -478,6 +510,14 @@ const load = (k, f) => { try { const v = store.getItem(k); return v ? JSON.parse
 const save = (k, v) => { try { store.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } };
 
 /* ---------- data toko ---------- */
+const DEFAULT_SHOP = {
+  brandA: CONFIG.brandA, brandB: CONFIG.brandB, about: CONFIG.about,
+  wa: CONFIG.wa, telegram: CONFIG.telegram, channel: CONFIG.channel,
+  how: "1. Pilih produk dan paket yang kamu mau.\n2. Isi nomor WhatsApp aktif, lalu pilih metode pembayaran.\n3. Bayar dengan QRIS: scan memakai e-wallet atau m-banking apa saja. Pembayaran terdeteksi otomatis.\n4. Setelah lunas, kirim konfirmasi ke admin lewat WhatsApp untuk menerima pesananmu.\n5. Semua pesanan bisa dilihat lagi di menu Riwayat Order.",
+  faq: "Berapa lama pesanan diproses?\nSetelah pembayaran terkonfirmasi, admin memproses secepatnya. Jam proses mengikuti jam online admin.\n\nQR pembayaran kedaluwarsa, bagaimana?\nQR berlaku 10 menit. Jika habis, buat pesanan baru.\n\nSaya sudah bayar tapi belum dapat pesanan?\nBuka Riwayat Order, ketuk pesananmu untuk melihat status, lalu hubungi admin lewat WhatsApp dengan menyebut Order ID.\n\nBisa refund?\nProduk digital yang sudah dikirim tidak dapat direfund, kecuali ada kendala dari pihak toko.",
+  terms: "1. Dengan membeli, kamu setuju mengikuti syarat ini.\n2. Pastikan produk, paket, dan data yang kamu isi sudah benar sebelum membayar.\n3. Pembayaran yang sudah berhasil tidak dapat dibatalkan.\n4. Produk digital yang sudah dikirim tidak dapat dikembalikan, kecuali terbukti bermasalah dari pihak toko.\n5. Toko berhak menolak atau membatalkan pesanan yang mencurigakan dan mengembalikan dana yang sudah dibayar.\n6. Syarat ini dapat berubah sewaktu-waktu.",
+  privacy: "Data yang kami simpan: nama, email akun, nomor WhatsApp, dan riwayat pesananmu.\nData dipakai hanya untuk memproses pesanan dan menghubungimu terkait pesanan.\nKami tidak menjual datamu ke pihak lain.\nPembayaran QRIS diproses oleh penyedia pembayaran; kami tidak menyimpan data kartu atau rekening.\nUntuk menghapus akun dan data, hubungi admin lewat WhatsApp."
+};
 const DEFAULT_DB = {products: PRODUCTS, banners: CONFIG.banners, ticker: CONFIG.ticker};
 function normDB(d){
   d = d || {};
@@ -494,14 +534,37 @@ function normDB(d){
     logos: (Array.isArray(b.logos) ? b.logos : []).filter(x => typeof x === "string" && x)
   })).filter(b => b.title);
   const sd = d.strips || {}, mk = (k, ttl) => ({title: (sd[k] && sd[k].title) || ttl, items: ((sd[k] && sd[k].items) || []).filter(x => x && x.img).map(x => ({img: x.img}))});
-  return {products, banners, ticker: t, strips: {games: mk("games", "Game Populer"), pay: mk("pay", "Metode Pembayaran")}};
+  const sh = d.shop || {}, shop = {};
+  Object.keys(DEFAULT_SHOP).forEach(k => shop[k] = (typeof sh[k] === "string" && sh[k].trim()) ? sh[k] : DEFAULT_SHOP[k]);
+  return {products, banners, ticker: t, shop, strips: {games: mk("games", "Game Populer"), pay: mk("pay", "Metode Pembayaran")}};
 }
 let DB = normDB((SB ? load("vs_cache", null) : load(KEY.db, null)) || PUBLISHED_DATA || clone(DEFAULT_DB));
+let RAW = DB, RS_ACTIVE = null, RSME = null, RSD = null;
+const RSLUG = (new URLSearchParams(location.search).get("r") || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30);
+function overlayDB(raw){
+  if(!RS_ACTIVE) return raw;
+  const d = clone(raw), r = RS_ACTIVE, nm = (r.shop && r.shop.name) || RSLUG;
+  d.products.forEach(p => p.packages.forEach((pk, i) => { const v = Number(r.prices[p.id + "|" + i]); if(v > 0) pk[1] = v; }));
+  d.shop = Object.assign({}, d.shop, {brandA: nm, brandB: "", about: (r.shop && r.shop.about) || ("Toko resmi " + nm + "."), wa: (r.shop && r.shop.wa) || d.shop.wa, telegram: "", channel: ""});
+  return d;
+}
+async function loadResellerShop(){
+  if(!SB || !RSLUG) return;
+  const {data} = await SB.from("reseller_shops").select("slug,shop,prices,pay").eq("slug", RSLUG).maybeSingle();
+  if(!data){ flash("Toko reseller tidak ditemukan."); return; }
+  data.shop = data.shop || {}; data.prices = data.prices || {}; data.pay = data.pay || {mode: "web"};
+  RS_ACTIVE = data;
+  const sm = document.querySelector('.pay[data-m="QRIS"] small');
+  if(sm && data.pay.mode === "manual") sm.textContent = "Scan QRIS toko, lalu konfirmasi ke penjual";
+  DB = overlayDB(RAW); refreshAll();
+}
 function persist(){
+  if(RS_ACTIVE){ flash("Buka toko utama untuk mengedit produk."); return false; }
   if(SB){
     if(!isAdmin()){ flash("Hanya admin yang bisa menyimpan."); return false; }
-    SB.from("store_data").upsert({id:1, data:DB}).then(({error}) => {
-      if(error) flash("Gagal simpan ke server: " + error.message); else save("vs_cache", DB);
+    const ts = new Date().toISOString();
+    SB.from("store_data").upsert({id:1, data:DB, updated_at:ts}).then(({error}) => {
+      if(error) flash("Gagal simpan ke server: " + error.message); else { save("vs_cache", DB); save("vs_ver2", String(new Date(ts).getTime())); }
     });
     return true;
   }
@@ -540,18 +603,49 @@ function flash(msg){
   clearTimeout(flashT); flashT = setTimeout(() => el.hidden = true, 3200);
 }
 
+/* ---------- tema terang / gelap ---------- */
+const THEME_KEY = "vinz_theme";
+const getTheme = () => { try{ const t = localStorage.getItem(THEME_KEY); return t === "light" || t === "dark" ? t : null; }catch(_){ return null; } };
+function setTheme(t, keep = true){
+  document.documentElement.setAttribute("data-theme", t);
+  if(keep){ try{ localStorage.setItem(THEME_KEY, t); }catch(_){} }
+  const m = document.querySelector('meta[name="theme-color"]'); if(m) m.content = t === "light" ? "#f3f5fb" : "#0b1020";
+  const mt = $("mTheme"); if(mt) mt.textContent = t === "light" ? "Ganti ke tema gelap" : "Ganti ke tema terang";
+}
+function askTheme(){
+  const w = document.createElement("div");
+  w.className = "thm"; w.setAttribute("role", "dialog"); w.setAttribute("aria-modal", "true"); w.setAttribute("aria-label", "Pilih tema");
+  w.innerHTML = `<div class="box"><h3>Pilih tampilan</h3><p>Pilih warna yang nyaman untuk matamu. Bisa diganti kapan saja lewat menu.</p>
+    <div class="opts"><button type="button" data-t="light"><i></i>Terang</button><button type="button" data-t="dark"><i></i>Gelap</button></div></div>`;
+  w.addEventListener("click", e => { const b = e.target.closest("button[data-t]"); if(!b) return; setTheme(b.dataset.t); w.remove(); });
+  document.body.appendChild(w);
+  w.querySelector("button").focus();
+}
+{ const t = getTheme(); setTheme(t || "dark", false); if(!t) askTheme(); }
+$("mTheme").addEventListener("click", e => { e.preventDefault(); setTheme((document.documentElement.getAttribute("data-theme") === "light") ? "dark" : "light"); });
+
 /* ---------- static bits ---------- */
-document.title = CONFIG.brandA + " " + CONFIG.brandB + " — Digital Store Otomatis 24 Jam";
-const brandHTML = `${esc(CONFIG.brandA)} <b>${esc(CONFIG.brandB)}</b>`;
-["brand","brand2","brandP","brandA"].forEach(i => $(i).innerHTML = brandHTML);
-$("brand3").textContent = CONFIG.brandA + CONFIG.brandB;
-$("logo").textContent = CONFIG.brandA[0];
+const waNum = v => { v = String(v || "").replace(/\D/g, ""); return v.startsWith("0") ? "62" + v.slice(1) : v; };
+function applyShop(){
+  const sh = DB.shop;
+  Object.assign(CONFIG, {brandA: sh.brandA, brandB: sh.brandB, about: sh.about, wa: waNum(sh.wa), telegram: sh.telegram, channel: sh.channel});
+  document.title = CONFIG.brandA + " " + CONFIG.brandB + " — Digital Store Otomatis 24 Jam";
+  const brandHTML = `${esc(CONFIG.brandA)} <b>${esc(CONFIG.brandB)}</b>`;
+  ["brand","brand2","brandP","brandA"].forEach(i => $(i).innerHTML = brandHTML);
+  $("brand3").textContent = CONFIG.brandA + CONFIG.brandB;
+  $("logo").textContent = (CONFIG.brandA[0] || "V").toUpperCase();
+  $("aboutText").textContent = CONFIG.about;
+  ["help","soWa","mWa","reseller"].forEach(i => $(i).href = waLink());
+  const dead = u => !u || /\/username/i.test(u);
+  [[["soTg","mTg"], CONFIG.telegram], [["soCh","mCh"], CONFIG.channel]].forEach(([ids, url]) => ids.forEach(i => { $(i).href = url; $(i).style.display = dead(url) ? "none" : ""; }));
+}
 $("yr").textContent = new Date().getFullYear();
-$("aboutText").textContent = CONFIG.about;
-["help","soWa","mWa","reseller"].forEach(i => $(i).href = waLink());
-["soTg","mTg"].forEach(i => $(i).href = CONFIG.telegram);
-["soCh","mCh"].forEach(i => $(i).href = CONFIG.channel);
-$("faq").href = waLink("Halo admin, saya mau tanya.");
+applyShop();
+const INFO_T = {how:"Cara Beli", faq:"Bantuan / FAQ", terms:"Syarat Ketentuan", privacy:"Kebijakan Privasi"};
+function showInfo(k){
+  openModal(`<div class="hd"><h5>${esc(INFO_T[k])}</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="info">${esc(DB.shop[k])}</div>${k === "faq" ? `<a class="wa" href="${waLink("Halo admin, saya mau tanya.")}" target="_blank" rel="noopener" style="text-decoration:none;display:block;text-align:center">Chat admin</a>` : ""}`);
+}
+document.addEventListener("click", e => { const a = e.target.closest("[data-info]"); if(a){ e.preventDefault(); showInfo(a.dataset.info); } });
 
 /* ---------- tiles / cards ---------- */
 function tile(p){
@@ -675,7 +769,7 @@ const ordState = o => !o.trx ? "m" : (PAYST[o.id] === "paid" || o.status === "pa
 const BADGE = {m:["m","Manual"], s:["s","Sukses"], x:["x","Kedaluwarsa"], p:["p","Menunggu bayar"]};
 async function checkTrx(o){
   if(!SB || !o.trx) return null;
-  const {data} = await SB.functions.invoke("qris", {body:{action:"check", transaction_id:o.trx}});
+  const {data} = await SB.functions.invoke("qris", {body:{action:"check", transaction_id:o.trx, reseller:o.reseller || ""}});
   if(!data || !data.status) return null;
   if(data.status === "paid") PAYST[o.id] = "paid";
   else if(["expired","failed","cancelled"].includes(data.status)) PAYST[o.id] = "dead";
@@ -700,12 +794,12 @@ function qrImg(o){
 function showPay(o){
   o.exp = expOf(o);
   const st = ordState(o), tok = o.id;
-  const sum = `<div class="sum"><div><span>Order ID</span><b>${esc(o.id)}</b></div><div><span>Produk</span><b>${esc(o.name)} · ${esc(o.pkg)} × ${o.qty}</b></div><div><span>Total bayar</span><b>${rp(o.total)}</b></div></div>`;
+  const sum = `<div class="sum"><div><span>Order ID</span><b>${esc(o.id)}</b></div><div><span>Produk</span><b>${esc(o.name)} · ${esc(o.pkg)} × ${o.qty}</b></div>${o.fee ? `<div><span>Biaya layanan</span><b>${rp(o.fee)}</b></div>` : ""}<div><span>Total bayar</span><b>${rp(o.total)}</b></div></div>`;
   const back = `<button class="ghost" id="backHist">Riwayat Order</button>`;
   const waBtn = `<a class="wa" href="${waLink("Halo admin, pembayaran QRIS sudah masuk.\nOrder ID: " + o.id + "\nProduk: " + o.name + " - " + o.pkg + "\nTotal: " + rp(o.total))}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center">Konfirmasi ke WhatsApp</a>`;
   if(st === "s") openModal(`<div class="done"><div class="ok">Pembayaran berhasil ✓</div><small style="color:var(--muted)">Kirim bukti ke admin lewat WhatsApp.</small>${sum}${waBtn}${back}<button class="ghost" data-close style="margin-top:8px">Tutup</button></div>`);
   else if(st === "x") openModal(`<div class="done"><div class="ok" style="color:#ef4444">QRIS kedaluwarsa</div><small style="color:var(--muted)">Waktu bayar sudah habis. Silakan buat pesanan baru.</small>${sum}${back}<button class="ghost" data-close style="margin-top:8px">Tutup</button></div>`);
-  else if(st === "m") openModal(`<div class="done"><div class="ok">Pesanan manual</div><small style="color:var(--muted)">Dikonfirmasi oleh admin.</small>${sum}${back}<button class="ghost" data-close style="margin-top:8px">Tutup</button></div>`);
+  else if(st === "m") openModal(`<div class="done"><div class="ok">Pesanan manual</div><small style="color:var(--muted)">Dikonfirmasi oleh penjual.</small>${sum}${back}<button class="ghost" data-close style="margin-top:8px">Tutup</button></div>`);
   else {
     const img = qrImg(o);
     openModal(`<div class="done"><div class="ok">Scan untuk bayar</div><small style="color:var(--muted)">Sisa waktu <b id="cd">--:--</b>. Halaman otomatis berubah saat pembayaran masuk.</small>${sum}
@@ -765,7 +859,7 @@ document.addEventListener("submit", async e => {
     if(reg && !r.error && !r.data.session) r = await SB.auth.signInWithPassword({email, password:pw});
     if(r.error) return err.textContent = /invalid login/i.test(r.error.message) ? "Email atau password salah." : r.error.message;
     if(!r.data.session) return err.textContent = "Cek emailmu untuk konfirmasi, lalu masuk.";
-    ME = mapUser(r.data.session.user); await loadOrders();
+    ME = mapUser(r.data.session.user); await loadOrders(); loadMyReseller();
   } else {
   const all = users();
     if(reg){
@@ -783,7 +877,7 @@ document.addEventListener("submit", async e => {
   flash(isAdmin() ? "Masuk sebagai admin." : reg ? "Akun dibuat. Selamat datang, " + name + "." : "Berhasil masuk.");
 });
 function logout(){
-  if(SB){ SB.auth.signOut(); ME = null; ORD = []; }
+  if(SB){ SB.auth.signOut(); ME = null; ORD = []; RSME = null; $("mReseller").style.display = "none"; }
   store.removeItem(KEY.sess); closeAll(); refreshUser();
   if(!$("adminView").hidden) showHome();
   flash("Kamu sudah keluar.");
@@ -813,7 +907,7 @@ function setTab(t){
 function updTotal(){
   const total = prod().packages[S.pkg][1] * S.qty;
   $("qn").textContent = S.qty;
-  $("tl").textContent = `Total bayar (${S.qty} item)`;
+  $("tl").textContent = `Total bayar (${S.qty} item)` + (RS_ACTIVE && RS_ACTIVE.pay.mode === "web" && S.pay === "QRIS" ? " + biaya layanan Rp100–500" : "");
   $("tt").textContent = rp(total);
   return total;
 }
@@ -838,17 +932,31 @@ $("buy").onclick = async () => {
   if(!me()) S.guest = name;
   const p = prod(), pk = p.packages[S.pkg], total = updTotal();
   const order = {id:"ORD-" + Date.now(), name:p.name, pkg:pk[0], qty:S.qty, total, pay:S.pay,
-                 time:new Date().toLocaleString("id-ID"), buyer:name, wa:$("wa").value.trim()};
+                 time:new Date().toLocaleString("id-ID"), buyer:name, wa:$("wa").value.trim(),
+                 reseller: RS_ACTIVE ? RS_ACTIVE.slug : "", rmode: RS_ACTIVE ? RS_ACTIVE.pay.mode : ""};
+  if(RS_ACTIVE && RS_ACTIVE.pay.mode === "manual" && S.pay === "QRIS"){
+    const qi = RS_ACTIVE.pay.img;
+    if(!qi){ $("err").textContent = "Penjual belum mengatur QRIS. Pilih metode lain atau hubungi penjual."; return; }
+    addOrder(order); $("who").textContent = "@" + curName();
+    const msg = "Halo, saya sudah bayar via QRIS.\nOrder ID: " + order.id + "\nProduk: " + p.name + " - " + pk[0] + " x" + order.qty + "\nTotal: " + rp(total);
+    openModal(`<div class="done"><div class="ok">Scan untuk bayar</div><small style="color:var(--muted)">Bayar sesuai nominal, lalu kirim bukti ke penjual lewat WhatsApp.</small>
+      <div class="sum"><div><span>Order ID</span><b>${esc(order.id)}</b></div><div><span>Produk</span><b>${esc(p.name)} · ${esc(pk[0])} × ${order.qty}</b></div><div><span>Total bayar</span><b>${rp(total)}</b></div></div>
+      <div class="qrbox"><img src="${esc(qi)}" alt="QRIS toko"></div>
+      <a class="ghost" style="display:block;text-decoration:none;margin-bottom:10px" href="${esc(qi)}" download="qris-${esc(order.id)}">Simpan gambar QR</a>
+      <a class="wa" href="${waLink(msg)}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center">Kirim bukti ke WhatsApp</a>
+      <button class="ghost" data-close style="margin-top:8px">Tutup</button></div>`);
+    return;
+  }
   if(SB && S.pay === "QRIS"){
     $("buy").disabled = true; $("err").textContent = "";
     openModal(`<div class="done"><div class="ok">Membuat QRIS...</div><small style="color:var(--muted)">Mohon tunggu sebentar.</small><div class="qrsk"></div></div>`);
-    const {data:q, error:qe} = await SB.functions.invoke("qris", {body:{action:"create", pid:S.pid, pkg:S.pkg, qty:S.qty, order_id:order.id, name, phone:order.wa}});
+    const {data:q, error:qe} = await SB.functions.invoke("qris", {body:{action:"create", pid:S.pid, pkg:S.pkg, qty:S.qty, order_id:order.id, name, phone:order.wa, reseller:order.reseller}});
     $("buy").disabled = false;
     if(qe || !q || !q.success){
       let m = (q && q.error) || (qe && qe.message) || "coba lagi";
       try{ if(qe && qe.context && qe.context.json){ const j = await qe.context.json(); m = j.error || j.message || JSON.stringify(j); } }catch(_){}
       closeAll(); $("err").textContent = "Gagal membuat QRIS: " + m; return; }
-    Object.assign(order, {trx:q.transaction_id, qs:q.qris_string || "", qurl:q.qris_url || "", exp:Date.now() + 10*60*1000, status:"pending", total:q.amount});
+    Object.assign(order, {trx:q.transaction_id, qs:q.qris_string || "", qurl:q.qris_url || "", exp:Date.now() + 10*60*1000, status:"pending", total:q.amount, rcost:q.reseller_cost || 0, fee:q.fee || 0, rhak:q.reseller_earn || 0});
     addOrder(order); $("who").textContent = "@" + curName();
     showPay(order); return;
   }
@@ -882,9 +990,9 @@ function openAdmin(){
 $("admBack").onclick = showHome;
 
 function renderAdmin(){
-  $("admTabs").innerHTML = [["prod","Produk"],["ban","Banner"],["gal","Galeri"],["tick","Teks jalan"],["data","Data"]]
+  $("admTabs").innerHTML = [["prod","Produk"],["ord","Order"],["rs","Reseller"],["ban","Banner"],["gal","Galeri"],["tick","Teks jalan"],["shop","Toko"],["data","Data"]]
     .map(([k,l]) => `<button class="atab" data-tab="${k}" aria-pressed="${A.tab===k}">${l}</button>`).join("");
-  $("admBody").innerHTML = {prod:admProducts, ban:admBanners, gal:admStrips, tick:admTicker, data:admData}[A.tab]();
+  $("admBody").innerHTML = {prod:admProducts, ord:admOrders, rs:admResellers, ban:admBanners, gal:admStrips, tick:admTicker, shop:admShop, data:admData}[A.tab]();
   if(A.tab === "tick") mountTicker($("tkPrev"), readTicker());
 }
 
@@ -984,6 +1092,196 @@ function readBanners(){
   });
 }
 
+const LST = {pending:["p","Menunggu bayar"], paid:["s","Masuk saldo"], expired:["x","Kedaluwarsa"], requested:["p","WD diminta"], done:["s","WD selesai"], rejected:["x","WD ditolak"], ok:["m","Koreksi"]};
+function ledRow(l, adm){
+  const [c, t] = LST[l.status] || ["m", l.status], neg = l.amount < 0;
+  const kind = l.kind === "sale" ? "Penjualan " + (l.order_id || "") : l.kind === "withdraw" ? "Penarikan saldo" : "Koreksi saldo";
+  return `<div class="hist"><b>${esc(kind)}</b><span style="font-weight:800;color:${neg ? "#ef4444" : "#22c55e"}">${neg ? "−" : "+"} ${rp(Math.abs(l.amount))}</span><br><small>${esc(new Date(l.created_at).toLocaleString("id-ID"))}${l.kind === "sale" ? "<br>Harga jual " + rp(l.price) + " − modal " + rp(l.cost) + " · biaya layanan pembeli " + rp(l.fee) : ""}${l.note ? "<br>" + esc(l.note) : ""}${l.admin_note ? "<br>Admin: " + esc(l.admin_note) : ""}</small><br><span class="bdg ${c}">${t}</span>${adm && l.kind === "withdraw" && l.status === "requested" ? `<div class="ordact"><button type="button" data-adm="wddone" data-id="${l.id}">Sudah ditransfer</button><button type="button" data-adm="wdrej" data-id="${l.id}">Tolak</button></div>` : ""}</div>`;
+}
+/* --- panel reseller (untuk pemilik toko reseller) --- */
+async function loadMyReseller(){
+  RSME = null; const mi = $("mReseller"); if(mi) mi.style.display = "none";
+  if(!SB || !ME) return;
+  const {data:t} = await SB.from("reseller_terms").select("slug,discount").eq("email", ME.email).maybeSingle();
+  if(!t) return;
+  const {data:sh} = await SB.from("reseller_shops").select("shop,prices,pay").eq("slug", t.slug).maybeSingle();
+  RSME = {slug:t.slug, discount:Number(t.discount) || 0, shop:(sh && sh.shop) || {}, prices:(sh && sh.prices) || {}, pay:(sh && sh.pay) || {mode:"web"}};
+  if(mi) mi.style.display = "";
+}
+$("mReseller").addEventListener("click", e => { e.preventDefault(); closeAll(); openRsPanel(); });
+const rsLink = () => location.origin + location.pathname + "?r=" + RSME.slug;
+async function openRsPanel(){
+  if(!RSME) return;
+  RSD = {name:RSME.shop.name || "", wa:RSME.shop.wa || "", about:RSME.shop.about || "", prices:Object.assign({}, RSME.prices), mode:RSME.pay.mode || "web", img:RSME.pay.img || "", key:"", secret:"", hasKey:false};
+  const {data} = await SB.from("reseller_secrets").select("api_key").eq("slug", RSME.slug).maybeSingle();
+  RSD.hasKey = !!(data && data.api_key);
+  await loadRsBal();
+  drawRs();
+}
+async function loadRsBal(){
+  const [b, l] = await Promise.all([SB.rpc("rs_balance", {s:RSME.slug}), SB.from("reseller_ledger").select("*").eq("slug", RSME.slug).order("created_at", {ascending:false}).limit(100)]);
+  RSD.bal = Number(b.data) || 0; RSD.led = l.data || [];
+  RSD.pend = RSD.led.filter(x => x.kind === "sale" && x.status === "pending").reduce((a, x) => a + Number(x.amount), 0);
+}
+function readRs(){
+  const g = id => { const el = $(id); return el ? el.value.trim() : null; };
+  const n = g("rs_name"); if(n !== null){ RSD.name = n; RSD.wa = g("rs_wa"); RSD.about = g("rs_about"); }
+  document.querySelectorAll("#modal [data-rsp]").forEach(i => { const v = Number(i.value); if(v > 0) RSD.prices[i.dataset.rsp] = v; else delete RSD.prices[i.dataset.rsp]; });
+  const m = g("rs_mode"); if(m) RSD.mode = m;
+  const k = g("rs_key"); if(k !== null){ RSD.key = k; RSD.secret = g("rs_secret"); }
+}
+function drawRs(){
+  const d = RSD, disc = RSME.discount;
+  const prods = RAW.products.map(p => `<div class="bcard"><b>${esc(p.name)}</b>${p.packages.map((pk, i) => { const cost = Math.round(pk[1] * (1 - disc/100)); const v = d.prices[p.id + "|" + i];
+    return `<label class="lbl">${esc(pk[0])} · modalmu ${rp(cost)} · harga normal ${rp(pk[1])}</label><input class="in" type="number" inputmode="numeric" data-rsp="${esc(p.id)}|${i}" value="${v || ""}" placeholder="${pk[1]}">`; }).join("")}</div>`).join("");
+  const payBox = d.mode === "web" ? `<p class="empty-adm">Pembeli bayar ke QRIS Vinzstore (otomatis). Selisih harga jualmu dengan modal adalah hakmu dan dicairkan oleh admin.</p>`
+    : d.mode === "qrispw" ? `<label class="lbl">API Key QRIS.PW milikmu</label><input class="in" id="rs_key" value="${esc(d.key)}" placeholder="${d.hasKey ? "sudah tersimpan, isi untuk mengganti" : "API Key"}" autocomplete="off">
+       <label class="lbl">API Secret QRIS.PW</label><input class="in" id="rs_secret" type="password" value="${esc(d.secret)}" placeholder="${d.hasKey ? "sudah tersimpan" : "API Secret"}" autocomplete="off">
+       <p class="empty-adm">Uang masuk langsung ke akun QRIS.PW-mu, otomatis terdeteksi. Kunci hanya dipakai server untuk membuat QR tokomu.</p>`
+    : `<label class="lbl">Gambar QRIS-mu (dari bank, e-wallet, atau mana saja)</label><input class="in" type="file" accept="image/*" data-rs="qrisimg">${d.img ? `<img class="qp" src="${esc(d.img)}" alt="QRIS">` : ""}
+       <p class="empty-adm">Pembeli scan, bayar, lalu kirim bukti ke WhatsApp-mu. Kamu konfirmasi sendiri. Pakai gambar QR yang jelas dan tidak buram.</p>`;
+  openModal(`<div class="hd"><h5>Panel Reseller</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox">
+    <div class="bcard"><label class="lbl">Saldo tersedia</label><div style="font-size:24px;font-weight:800">${rp(d.bal || 0)}</div><small style="color:var(--muted)">Menunggu pembayaran lunas: ${rp(d.pend || 0)}</small>
+      <div class="ordact"><button type="button" data-rsact="settle">Perbarui saldo</button><button type="button" data-rsact="wd">Tarik saldo</button><button type="button" data-rsact="ledger">Riwayat saldo</button></div></div>
+    <div class="bcard"><label class="lbl">Link tokomu</label><input class="in" readonly value="${esc(rsLink())}" onclick="this.select()"><div class="ordact"><button type="button" data-rsact="copy">Salin link</button><button type="button" data-rsact="orders">Order tokoku</button></div></div>
+    <div class="bcard"><label class="lbl">Nama toko</label><input class="in" id="rs_name" value="${esc(d.name)}" maxlength="30"><label class="lbl">Nomor WhatsApp</label><input class="in" id="rs_wa" value="${esc(d.wa)}" placeholder="08xxxxxxxxxx"><label class="lbl">Deskripsi singkat</label><input class="in" id="rs_about" value="${esc(d.about)}" maxlength="140"></div>
+    <div class="bcard"><label class="lbl">Metode pembayaran</label><select class="in" id="rs_mode" data-rs="mode"><option value="web"${d.mode === "web" ? " selected" : ""}>QRIS web Vinzstore (otomatis)</option><option value="qrispw"${d.mode === "qrispw" ? " selected" : ""}>QRIS.PW milikku (otomatis)</option><option value="manual"${d.mode === "manual" ? " selected" : ""}>QRIS milikku (upload gambar, konfirmasi manual)</option></select>${payBox}</div>
+    <p class="empty-adm">Kosongkan harga untuk memakai harga normal. Harga tidak boleh di bawah modalmu.</p>${prods}
+    <div class="actions"><button class="btn" data-rsact="save">Simpan toko</button></div></div>`);
+}
+async function saveRs(){
+  readRs(); const d = RSD, disc = RSME.discount;
+  if(!d.name){ flash("Nama toko wajib diisi."); return; }
+  if(waNum(d.wa).length < 9){ flash("Nomor WhatsApp tidak valid."); return; }
+  for(const p of RAW.products) for(let i = 0; i < p.packages.length; i++){ const v = d.prices[p.id + "|" + i], cost = Math.round(p.packages[i][1] * (1 - disc/100)); if(v && v < cost){ flash("Harga " + p.name + " (" + p.packages[i][0] + ") minimal " + rp(cost)); return; } }
+  if(d.mode === "manual" && !d.img){ flash("Upload gambar QRIS dulu."); return; }
+  if(d.mode === "qrispw"){
+    if(d.key && d.secret){ const {error} = await SB.from("reseller_secrets").upsert({slug:RSME.slug, api_key:d.key, api_secret:d.secret}); if(error){ flash("Gagal simpan kunci: " + error.message); return; } d.hasKey = true; d.key = d.secret = ""; }
+    else if(!d.hasKey){ flash("Isi API Key dan API Secret QRIS.PW."); return; }
+  }
+  const row = {shop:{name:d.name, wa:waNum(d.wa), about:d.about}, prices:d.prices, pay:{mode:d.mode, img:d.mode === "manual" ? d.img : ""}, updated_at:new Date().toISOString()};
+  const {error} = await SB.from("reseller_shops").update(row).eq("slug", RSME.slug);
+  if(error){ flash("Gagal menyimpan: " + error.message); return; }
+  Object.assign(RSME, {shop:row.shop, prices:row.prices, pay:row.pay}); flash("Toko tersimpan."); drawRs();
+}
+async function rsOrders(){
+  const {data, error} = await SB.from("orders").select("data").eq("data->>reseller", RSME.slug).order("created_at", {ascending:false}).limit(50);
+  if(error){ flash("Gagal memuat order: " + error.message); return; }
+  const list = (data || []).map(r => r.data);
+  openModal(`<div class="hd"><h5>Order tokoku</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox">${list.length ? list.map(o => { const st = ordState(o), [c, l] = BADGE[st];
+    return `<div class="hist"><b>${esc(o.name)}</b>${esc(o.pkg)} × ${o.qty} — ${rp(o.total)}<br><small>${esc(o.id)} · ${esc(o.time)}<br>Pembeli: ${esc(o.buyer || "-")} · WA: ${esc(o.wa || "-")}${o.rhak ? "<br>Hakmu " + rp(o.rhak) + " (masuk saldo setelah lunas)" : ""}</small><br><span class="bdg ${c}">${l}</span></div>`; }).join("") : '<p class="empty-adm">Belum ada order.</p>'}<button class="ghost" data-rsact="back" style="margin-top:10px">Kembali ke panel</button></div>`);
+  list.filter(o => o.trx && ordState(o) === "p").slice(0, 8).forEach(o => checkTrx(o));
+}
+$("modal").addEventListener("click", async e => {
+  const b = e.target.closest("[data-rsact]"); if(!b || !RSME) return;
+  const a = b.dataset.rsact;
+  if(a === "copy"){ try{ await navigator.clipboard.writeText(rsLink()); flash("Link disalin."); }catch(_){ flash("Tekan lama kolom link untuk menyalin."); } }
+  else if(a === "save") saveRs();
+  else if(a === "orders"){ readRs(); rsOrders(); }
+  else if(a === "settle"){ readRs(); b.disabled = true; await SB.functions.invoke("qris", {body:{action:"settle", reseller:RSME.slug}}); await loadRsBal(); drawRs(); flash("Saldo diperbarui."); }
+  else if(a === "ledger"){ readRs(); openModal(`<div class="hd"><h5>Riwayat saldo</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox">${RSD.led.length ? RSD.led.map(l => ledRow(l, false)).join("") : '<p class="empty-adm">Belum ada riwayat.</p>'}<button class="ghost" data-rsact="back" style="margin-top:10px">Kembali ke panel</button></div>`); }
+  else if(a === "wd"){ readRs(); openModal(`<div class="hd"><h5>Tarik saldo</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox"><div class="bcard"><small style="color:var(--muted)">Saldo tersedia ${rp(RSD.bal || 0)} · minimal Rp10.000</small>
+      <label class="lbl">Jumlah penarikan (Rp)</label><input class="in" id="wd_amt" type="number" inputmode="numeric" placeholder="50000">
+      <label class="lbl">Metode penarikan</label><select class="in" id="wd_method"><option>DANA</option><option>GoPay</option></select>
+      <label class="lbl">Nomor DANA / GoPay</label><input class="in" id="wd_num" type="tel" inputmode="numeric" placeholder="08xxxxxxxxxx">
+      <label class="lbl">Nama pemilik akun</label><input class="in" id="wd_name" maxlength="40" placeholder="Sesuai nama di aplikasi"><div class="actions"><button class="btn" data-rsact="wdsend">Ajukan penarikan</button></div></div><button class="ghost" data-rsact="back">Kembali ke panel</button></div>`); }
+  else if(a === "wdsend"){
+    const amt = Math.round(Number($("wd_amt").value));
+    let num = $("wd_num").value.replace(/\D/g, ""); if(num.startsWith("62")) num = "0" + num.slice(2);
+    const nm = $("wd_name").value.trim().replace(/\s+/g, " "), dest = $("wd_method").value + " " + num + " a.n. " + nm;
+    if(!(amt >= 10000)){ flash("Minimal penarikan Rp10.000."); return; }
+    if(!/^08\d{8,12}$/.test(num)){ flash("Nomor DANA/GoPay tidak valid (contoh 08123456789)."); return; }
+    if(nm.length < 2){ flash("Isi nama pemilik akun."); return; }
+    b.disabled = true;
+    const {error} = await SB.rpc("rs_request_wd", {s:RSME.slug, amt, dest});
+    if(error){ b.disabled = false; flash(error.message); return; }
+    await loadRsBal(); flash("Penarikan diajukan. Admin akan memprosesnya."); drawRs();
+  }
+  else if(a === "back") drawRs();
+});
+$("modal").addEventListener("change", async e => {
+  const t = e.target; if(!RSD || !t) return;
+  if(t.dataset && t.dataset.rs === "mode"){ readRs(); RSD.mode = t.value; drawRs(); }
+  else if(t.dataset && t.dataset.rs === "qrisimg" && t.files[0]){ readRs(); RSD.img = await readImage(t.files[0], 900); drawRs(); }
+});
+
+/* --- admin: kelola reseller --- */
+let ARS = [];
+function admResellers(){
+  setTimeout(loadAdminResellers, 0);
+  return `<div class="bcard" style="margin-top:16px"><b>Tambah reseller</b>
+    <label class="lbl">Email akun reseller (harus daftar dulu di web)</label><input class="in" id="rs_email" type="email" placeholder="email@gmail.com">
+    <label class="lbl">Nama link (huruf kecil/angka/-, 3-30 karakter)</label><input class="in" id="rs_slug" placeholder="pinstore">
+    <label class="lbl">Diskon harga modal (%) dari harga tokomu</label><input class="in" id="rs_disc" type="number" inputmode="decimal" value="0" min="0" max="90">
+    <div class="actions"><button class="btn" data-act="rsAdd">Tambah reseller</button></div></div><div class="ordtools"><button class="btn sec sm" data-act="rsSettle">Perbarui status pembayaran semua toko</button></div><div id="rsRows"><p class="empty-adm">Memuat...</p></div>`;
+}
+async function loadAdminResellers(){
+  const el = $("rsRows"); if(!el) return;
+  if(!SB){ el.innerHTML = '<p class="empty-adm">Fitur reseller butuh Supabase aktif.</p>'; return; }
+  const [a, b, bl] = await Promise.all([SB.from("reseller_terms").select("*").order("created_at", {ascending:false}), SB.from("reseller_shops").select("slug,shop,pay"), SB.rpc("rs_balances")]);
+  const bm = {}; (bl.data || []).forEach(x => bm[x.slug] = x);
+  if(a.error){ el.innerHTML = '<p class="empty-adm">Gagal memuat: ' + esc(a.error.message) + '. Sudah menjalankan SQL reseller?</p>'; return; }
+  const sm = {}; (b.data || []).forEach(x => sm[x.slug] = x);
+  ARS = (a.data || []).map(t => Object.assign({}, t, {shop:(sm[t.slug] || {}).shop || {}, pay:(sm[t.slug] || {}).pay || {}}));
+  const ML = {web:"QRIS web", qrispw:"QRIS.PW sendiri", manual:"QRIS manual"};
+  el.innerHTML = ARS.length ? ARS.map(r => `<div class="hist"><b>${esc(r.shop.name || r.slug)}</b>${esc(r.email)}<br><small>${esc(location.origin + location.pathname)}?r=${esc(r.slug)}<br>Pembayaran: ${esc(ML[r.pay.mode] || "QRIS web")}<br>Saldo reseller: <b>${rp((bm[r.slug] || {}).balance || 0)}</b> · menunggu bayar ${rp((bm[r.slug] || {}).pending || 0)}${Number((bm[r.slug] || {}).wd_pending) ? ' · <b style="color:#f59e0b">' + bm[r.slug].wd_pending + ' penarikan diminta</b>' : ""}</small>
+    <div class="ordact"><input class="in" type="number" style="width:90px;flex:none" data-disc="${esc(r.slug)}" value="${Number(r.discount) || 0}" min="0" max="90" aria-label="Diskon modal persen"><button type="button" data-act="rsLed" data-slug="${esc(r.slug)}">Mutasi saldo</button><button type="button" data-act="rsDisc" data-slug="${esc(r.slug)}">Simpan diskon %</button><button type="button" data-act="rsDel" data-slug="${esc(r.slug)}">Hapus</button></div></div>`).join("") : '<p class="empty-adm">Belum ada reseller.</p>';
+}
+let ADMLED = {slug:"", rows:[]};
+async function openAdmLedger(slug){
+  const [b, l] = await Promise.all([SB.rpc("rs_balance", {s:slug}), SB.from("reseller_ledger").select("*").eq("slug", slug).order("created_at", {ascending:false}).limit(200)]);
+  ADMLED = {slug, rows:l.data || []};
+  openModal(`<div class="hd"><h5>Mutasi: ${esc(slug)}</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox"><div class="bcard"><label class="lbl">Saldo reseller saat ini</label><div style="font-size:24px;font-weight:800">${rp(Number(b.data) || 0)}</div>
+    <div class="ordact"><button type="button" data-adm="adjust">Koreksi saldo</button></div></div>${ADMLED.rows.length ? ADMLED.rows.map(x => ledRow(x, true)).join("") : '<p class="empty-adm">Belum ada mutasi.</p>'}</div>`);
+}
+$("modal").addEventListener("click", async e => {
+  const b = e.target.closest("[data-adm]"); if(!b || !SB || !isAdmin()) return;
+  const a = b.dataset.adm, id = Number(b.dataset.id), sl = ADMLED.slug;
+  if(a === "wddone"){ const ref = prompt("Catatan/bukti transfer (opsional):", ""); if(ref === null) return; const {error} = await SB.from("reseller_ledger").update({status:"done", admin_note:ref, paid_at:new Date().toISOString()}).eq("id", id); flash(error ? "Gagal: " + error.message : "Penarikan ditandai selesai."); openAdmLedger(sl); }
+  else if(a === "wdrej"){ const why = prompt("Alasan penolakan:", ""); if(why === null) return; const {error} = await SB.from("reseller_ledger").update({status:"rejected", admin_note:why}).eq("id", id); flash(error ? "Gagal: " + error.message : "Penarikan ditolak, saldo dikembalikan."); openAdmLedger(sl); }
+  else if(a === "adjust"){
+    const v = prompt("Jumlah koreksi dalam Rp (positif menambah, negatif mengurangi):", ""); if(v === null) return;
+    const n = Math.round(Number(v)); if(!n){ flash("Jumlah tidak valid."); return; }
+    const note = prompt("Alasan koreksi (wajib):", ""); if(!note){ flash("Alasan wajib diisi."); return; }
+    const {error} = await SB.from("reseller_ledger").insert({slug:sl, kind:"adjust", status:"ok", amount:n, note}); flash(error ? "Gagal: " + error.message : "Saldo dikoreksi."); openAdmLedger(sl);
+  }
+});
+/* --- toko --- */
+function admShop(){
+  const sh = DB.shop, f = (k, l, ph) => `<label class="lbl">${l}</label><input class="in" id="sh_${k}" value="${esc(sh[k])}" placeholder="${ph || ""}">`;
+  const t = (k, l) => `<label class="lbl">${l}</label><textarea class="in" id="sh_${k}" rows="6">${esc(sh[k])}</textarea>`;
+  const warn = (waNum(sh.wa) === "6281234567890") ? `<p style="color:#f59e0b;font-weight:700">Nomor WhatsApp masih contoh. Ganti dengan nomor adminmu supaya pembeli bisa menghubungi.</p>` : "";
+  return `<div class="bcard" style="margin-top:16px">${warn}${f("brandA","Nama toko (bagian 1)")}${f("brandB","Nama toko (bagian 2, berwarna)")}${t("about","Deskripsi toko (footer)")}
+    ${f("wa","Nomor WhatsApp admin","08xxxxxxxxxx atau 628xxxxxxxxxx")}${f("telegram","Link Telegram","https://t.me/...")}${f("channel","Link saluran","https://t.me/...")}
+    <p class="empty-adm" style="padding:4px 0">Link Telegram/saluran yang masih berisi "username" tidak ditampilkan di situs.</p>
+    ${t("how","Isi halaman Cara Beli")}${t("faq","Isi halaman Bantuan / FAQ")}${t("terms","Isi Syarat Ketentuan")}${t("privacy","Isi Kebijakan Privasi")}
+    <div class="actions"><button class="btn" data-act="saveShop">Simpan pengaturan toko</button></div></div>`;
+}
+/* --- order semua pembeli --- */
+let AORD = [];
+function admOrders(){
+  setTimeout(loadAdminOrders, 0);
+  return `<div class="ordtools"><input class="in" id="ordQ" placeholder="Cari order, produk, nama, WA"><button class="btn sec sm" data-act="ordReload">Muat ulang</button></div><div id="ordRows"><p class="empty-adm">Memuat...</p></div>`;
+}
+async function loadAdminOrders(){
+  const el = $("ordRows"); if(!el) return;
+  if(!SB){ el.innerHTML = '<p class="empty-adm">Daftar order semua pembeli butuh Supabase aktif.</p>'; return; }
+  const {data, error} = await SB.from("orders").select("data").order("created_at", {ascending:false}).limit(100);
+  if(error){ el.innerHTML = '<p class="empty-adm">Gagal memuat: ' + esc(error.message) + '</p>'; return; }
+  AORD = (data || []).map(r => r.data);
+  drawAdminOrders();
+  const pend = AORD.filter(o => ordState(o) === "p").slice(0, 10);
+  if(pend.length) Promise.all(pend.map(checkTrx)).then(drawAdminOrders);
+}
+function drawAdminOrders(){
+  const el = $("ordRows"); if(!el) return;
+  const q = (($("ordQ") || {}).value || "").toLowerCase();
+  const list = AORD.filter(o => !q || [o.id, o.name, o.pkg, o.buyer, o.wa].join(" ").toLowerCase().includes(q));
+  el.innerHTML = list.length ? list.map(o => { const st = ordState(o), [c, l] = BADGE[st];
+    return `<div class="hist"><b>${esc(o.name)}</b>${esc(o.pkg)} × ${o.qty} — ${rp(o.total)}<br><small>${esc(o.id)} · ${esc(o.time)}<br>Pembeli: ${esc(o.buyer || "-")} · WA: ${esc(o.wa || "-")}${o.reseller ? "<br>Reseller: " + esc(o.reseller) + (o.rhak ? " · hak reseller " + rp(o.rhak) + " · biaya layanan " + rp(o.fee || 0) : " (" + (o.rmode === "manual" ? "QRIS manual" : "QRIS sendiri") + ")") : ""}</small><br><span class="bdg ${c}">${l}</span>
+      <div class="ordact">${o.trx && st !== "s" ? `<button type="button" data-act="ordCheck" data-oid="${esc(o.id)}">Cek status</button>` : ""}${waNum(o.wa) ? `<a href="https://wa.me/${waNum(o.wa)}" target="_blank" rel="noopener">Chat pembeli</a>` : ""}</div></div>`; }).join("") : '<p class="empty-adm">Belum ada order.</p>';
+}
+document.addEventListener("input", e => { if(e.target && e.target.id === "ordQ") drawAdminOrders(); });
 /* --- galeri berjalan --- */
 function admStrips(){
   const blk = ([k, hint]) => { const g = A.strips[k]; return `<div class="bcard" data-k="${k}">
@@ -1062,6 +1360,7 @@ function renderStrips(){
   }).join("");
 }
 function refreshAll(){
+  applyShop();
   renderStrips();
   renderBanner(); mountTicker($("ticker"), DB.ticker);
   renderRail(); renderPills(); renderGrid();
@@ -1090,6 +1389,38 @@ $("admBody").addEventListener("click", async e => {
   else if(act === "addPk"){ readProdForm(); A.edit.packages.push(["",0]); renderAdmin(); }
   else if(act === "rmPk"){ readProdForm(); A.edit.packages.splice(i, 1); if(!A.edit.packages.length) A.edit.packages.push(["",0]); renderAdmin(); }
   else if(act === "rmImg"){ readProdForm(); A.edit.img = ""; $("f_img").value = ""; A.edit.img = ""; renderAdmin(); }
+  else if(act === "saveShop"){
+    const g = k => $("sh_" + k).value.trim(), wa = waNum(g("wa"));
+    if(wa.length < 9){ flash("Nomor WhatsApp tidak valid."); return; }
+    if(!g("brandA")){ flash("Nama toko tidak boleh kosong."); return; }
+    ["brandA","brandB","about","telegram","channel","how","faq","terms","privacy"].forEach(k => DB.shop[k] = g(k) || DEFAULT_SHOP[k]);
+    DB.shop.wa = wa; persist(); applyShop(); renderAdmin(); flash("Pengaturan toko tersimpan.");
+  }
+  else if(act === "rsAdd"){
+    const email = $("rs_email").value.trim().toLowerCase(), slug = $("rs_slug").value.trim().toLowerCase(), disc = Number($("rs_disc").value) || 0;
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ flash("Email tidak valid."); return; }
+    if(!/^[a-z0-9-]{3,30}$/.test(slug)){ flash("Nama link: 3-30 karakter huruf kecil, angka, atau -."); return; }
+    if(disc < 0 || disc > 90){ flash("Diskon 0 sampai 90."); return; }
+    SB.from("reseller_terms").insert({slug, email, discount:disc}).then(async ({error}) => {
+      if(error){ flash(/duplicate|unique/i.test(error.message) ? "Email atau nama link sudah dipakai." : "Gagal: " + error.message); return; }
+      const r2 = await SB.from("reseller_shops").insert({slug, shop:{name:slug}});
+      if(r2.error){ flash("Gagal: " + r2.error.message); return; }
+      flash("Reseller ditambahkan. Link: ?r=" + slug); renderAdmin();
+    });
+  }
+  else if(act === "rsSettle"){ b.disabled = true; SB.functions.invoke("qris", {body:{action:"settle"}}).then(({data}) => { b.disabled = false; flash(data && data.success ? "Dicek " + data.checked + " pembayaran, " + data.paid + " lunas." : "Gagal memperbarui."); loadAdminResellers(); }); }
+  else if(act === "rsLed"){ openAdmLedger(b.dataset.slug); }
+  else if(act === "rsDisc"){
+    const sl = b.dataset.slug, v = Number(document.querySelector('[data-disc="' + sl + '"]').value);
+    if(!(v >= 0 && v <= 90)){ flash("Diskon 0 sampai 90."); return; }
+    SB.from("reseller_terms").update({discount:v}).eq("slug", sl).then(({error}) => flash(error ? "Gagal: " + error.message : "Diskon disimpan."));
+  }
+  else if(act === "rsDel"){
+    if(!confirm("Hapus reseller ini beserta harga dan pengaturannya?")) return;
+    SB.from("reseller_terms").delete().eq("slug", b.dataset.slug).then(({error}) => { flash(error ? (/foreign|violates/i.test(error.message) ? "Reseller punya riwayat saldo, tidak bisa dihapus." : "Gagal: " + error.message) : "Reseller dihapus."); loadAdminResellers(); });
+  }
+  else if(act === "ordReload"){ loadAdminOrders(); }
+  else if(act === "ordCheck"){ const o = AORD.find(x => x.id === b.dataset.oid); if(o){ b.disabled = true; b.textContent = "Mengecek..."; checkTrx(o).then(drawAdminOrders); } }
   else if(act === "rmLogo"){ readBanners(); A.banners[i].logos.splice(+b.dataset.j, 1); renderAdmin(); }
   else if(act === "addLogoUrl"){ readBanners(); const u = document.querySelector(`[data-lu="${i}"]`).value.trim(); if(/^https?:\/\//.test(u)){ A.banners[i].logos.push(u); renderAdmin(); } else flash("Tempel URL gambar yang diawali https://"); }
   else if(act === "rmStrip"){ readStrips(); A.strips[b.dataset.k].items.splice(i, 1); renderAdmin(); }
@@ -1147,17 +1478,23 @@ refreshUser(); refreshAll();
 if(SB){ const warm = () => SB.functions.invoke("qris", {body:{action:"ping"}}).catch(() => {}); setTimeout(warm, 1500); document.addEventListener("visibilitychange", () => { if(!document.hidden) warm(); }); (async () => {
   const {data:s} = await SB.auth.getSession();
   if(s.session){ ME = mapUser(s.session.user); await loadOrders(); refreshUser(); }
-  await syncRemote();
+  loadMyReseller();
+  await Promise.all([syncRemote(), loadResellerShop()]);
   document.addEventListener("visibilitychange", () => { if(!document.hidden) syncRemote(); });
   setInterval(() => { if(!document.hidden) syncRemote(); }, 30000);
 })(); }
 async function syncRemote(){
   if(!SB || !$("adminView").hidden || !$("modal") || document.querySelector(".modal:not([hidden]),#modal:not([hidden])")) return;
+  const {data:v} = await SB.from("store_data").select("updated_at").eq("id", 1).maybeSingle();
+  if(!v) return;
+  const ver = String(new Date(v.updated_at).getTime());
+  if(load("vs_ver2", null) === ver) return;
   const {data} = await SB.from("store_data").select("data").eq("id", 1).maybeSingle();
   if(!data || !data.data) return;
+  save("vs_ver2", ver);
   const nd = normDB(data.data);
-  if(JSON.stringify(nd) === JSON.stringify(DB)) return;
-  DB = nd; save("vs_cache", DB);
+  if(JSON.stringify(nd) === JSON.stringify(RAW)) return;
+  RAW = nd; DB = overlayDB(RAW); save("vs_cache", RAW);
   if(S.pid && !DB.products.find(p => p.id === S.pid)) S.pid = null;
   refreshAll();
 }
