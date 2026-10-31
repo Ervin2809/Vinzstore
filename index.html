@@ -541,7 +541,7 @@ function normDB(d){
 let DB = normDB((SB ? load("vs_cache", null) : load(KEY.db, null)) || PUBLISHED_DATA || clone(DEFAULT_DB));
 let RAW = DB, RS_ACTIVE = null, RSME = null, RSD = null;
 const MAIN_HOST = "vinzprostore.web.id";   // domain utama tokomu
-const SUBDOMAINS_ON = false;               // ubah ke true setelah wildcard DNS + Worker Cloudflare aktif
+const SUBDOMAINS_ON = true;                // wildcard DNS + Worker reseller-proxy sudah aktif
 const HOST = location.hostname.toLowerCase();
 let RSLUG = (new URLSearchParams(location.search).get("r") || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30);
 { const sub = HOST.endsWith("." + MAIN_HOST) ? HOST.slice(0, -(MAIN_HOST.length + 1)) : ""; if(!RSLUG && sub !== "www" && /^[a-z0-9-]{3,30}$/.test(sub)) RSLUG = sub; }
