@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0b1020">
 <script>try{var __t=localStorage.getItem("vinz_theme");if(__t==="light"||__t==="dark")document.documentElement.setAttribute("data-theme",__t)}catch(e){}</script>
+<script>try{var d=document.documentElement,h=location.hostname.toLowerCase(),M="vinzprostore.web.id",q=new URLSearchParams(location.search).get("r");if(!window.__RS&&((q&&/^[a-z0-9-]{3,30}$/i.test(q))||(h!==M&&h!=="www."+M&&!/^(localhost|127\.|.*\.github\.io|.*\.pages\.dev|.*\.workers\.dev)$/.test(h)))){d.classList.add("rs-wait");setTimeout(function(){d.classList.remove("rs-wait")},4000)}}catch(e){}</script>
 <title>Vinzstore — Digital Store Otomatis 24 Jam</title>
 <meta name="description" content="Toko digital otomatis 24 jam. Pilih produk, bayar dengan QRIS, pesanan diproses cepat.">
 <meta property="og:title" content="Vinzstore — Digital Store Otomatis 24 Jam">
@@ -108,6 +109,8 @@ textarea.in{resize:vertical;min-height:110px;font:inherit;line-height:1.5}
 .ordtools{display:flex;gap:8px;margin:12px 0}.ordtools .in{flex:1}
 .ordact{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .ordact a,.ordact button{font-size:12px;font-weight:700;border-radius:99px;padding:6px 12px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);text-decoration:none}
+html.rs-wait body{opacity:0}
+body{transition:opacity .15s}
 /* tema terang */
 html[data-theme="light"]{--bg:#f3f5fb;--surface:#ffffff;--surface-2:#eceff8;--line:#d9dff0;--text:#141b34;--muted:#5a6483;--accent-2:#3b54e8;color-scheme:light}
 html[data-theme="light"] .top{background:rgba(255,255,255,.92)}
@@ -554,16 +557,26 @@ function overlayDB(raw){
   return d;
 }
 async function loadResellerShop(){
-  if(!SB) return;
-  if(!RSLUG && CUSTOM_HOST){ const {data:dm} = await SB.from("reseller_domains").select("slug").eq("domain", CUSTOM_HOST).eq("status", "active").maybeSingle(); if(dm) RSLUG = dm.slug; }
-  if(!RSLUG) return;
-  const {data} = await SB.from("reseller_shops").select("slug,shop,prices,pay").eq("slug", RSLUG).maybeSingle();
-  if(!data){ flash("Toko reseller tidak ditemukan."); return; }
-  data.shop = data.shop || {}; data.prices = data.prices || {}; data.pay = data.pay || {mode: "web"};
-  RS_ACTIVE = data;
+  try{
+    if(!SB) return;
+    if(!RSLUG && CUSTOM_HOST){ const {data:dm} = await SB.from("reseller_domains").select("slug").eq("domain", CUSTOM_HOST).eq("status", "active").maybeSingle(); if(dm) RSLUG = dm.slug; }
+    if(!RSLUG) return;
+    const {data} = await SB.from("reseller_shops").select("slug,shop,prices,pay").eq("slug", RSLUG).maybeSingle();
+    if(!data){ if(!RS_ACTIVE) flash("Toko reseller tidak ditemukan."); return; }
+    data.shop = data.shop || {}; data.prices = data.prices || {}; data.pay = data.pay || {mode: "web"};
+    RS_ACTIVE = data; applyRsUi();
+    DB = overlayDB(RAW); refreshAll();
+  } finally { document.documentElement.classList.remove("rs-wait"); }
+}
+function applyRsUi(){
   const sm = document.querySelector('.pay[data-m="QRIS"] small');
-  if(sm && data.pay.mode === "manual") sm.textContent = "Scan QRIS toko, lalu konfirmasi ke penjual";
-  DB = overlayDB(RAW); refreshAll();
+  if(sm && RS_ACTIVE && RS_ACTIVE.pay.mode === "manual") sm.textContent = "Scan QRIS toko, lalu konfirmasi ke penjual";
+}
+// data reseller yang sudah disisipkan Worker: tampil langsung tanpa menunggu jaringan
+if(window.__RS && window.__RS.slug){
+  const w = window.__RS; RSLUG = RSLUG || w.slug;
+  RS_ACTIVE = {slug:w.slug, shop:w.shop || {}, prices:w.prices || {}, pay:w.pay || {mode:"web"}};
+  applyRsUi(); DB = overlayDB(RAW);
 }
 function persist(){
   if(RS_ACTIVE){ flash("Buka toko utama untuk mengedit produk."); return false; }
@@ -640,6 +653,9 @@ function applyShop(){
   const brandHTML = `${esc(CONFIG.brandA)} <b>${esc(CONFIG.brandB)}</b>`;
   ["brand","brand2","brandP","brandA"].forEach(i => $(i).innerHTML = brandHTML);
   $("brand3").textContent = CONFIG.brandA + CONFIG.brandB;
+  { const ic = document.querySelector('link[rel="icon"]'), l = ((CONFIG.brandA.match(/[A-Za-z0-9]/) || ["V"])[0]).toUpperCase();
+    if(ic) ic.href = "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='#4f6bff'/><text x='32' y='45' font-size='38' font-family='Arial' font-weight='800' text-anchor='middle' fill='white'>" + l + "</text></svg>");
+    const md = document.querySelector('meta[name="description"]'); if(md) md.content = CONFIG.about; }
   $("logo").textContent = (CONFIG.brandA[0] || "V").toUpperCase();
   $("aboutText").textContent = CONFIG.about;
   ["help","soWa","mWa","reseller"].forEach(i => $(i).href = waLink());
@@ -959,7 +975,7 @@ $("buy").onclick = async () => {
                  reseller: RS_ACTIVE ? RS_ACTIVE.slug : "", rmode: RS_ACTIVE ? RS_ACTIVE.pay.mode : ""};
   if(RS_ACTIVE && RS_ACTIVE.pay.mode === "manual" && S.pay === "QRIS"){
     const qi = RS_ACTIVE.pay.img;
-    if(!qi){ $("err").textContent = "Penjual belum mengatur QRIS. Pilih metode lain atau hubungi penjual."; return; }
+    if(!qi){ $("err").textContent = "QRIS toko belum siap. Coba lagi sebentar, atau pilih metode lain / hubungi penjual."; return; }
     addOrder(order); $("who").textContent = "@" + curName();
     const msg = "Halo, saya sudah bayar via QRIS.\nOrder ID: " + order.id + "\nProduk: " + p.name + " - " + pk[0] + " x" + order.qty + "\nTotal: " + rp(total);
     openModal(`<div class="done"><div class="ok">Scan untuk bayar</div><small style="color:var(--muted)">Bayar sesuai nominal, lalu kirim bukti ke penjual lewat WhatsApp.</small>
@@ -1570,12 +1586,14 @@ $("admBody").addEventListener("input", e => {
 
 /* ---------- init ---------- */
 refreshUser(); refreshAll();
+if(!SB) document.documentElement.classList.remove("rs-wait");
 if(SB){ const warm = () => SB.functions.invoke("qris", {body:{action:"ping"}}).catch(() => {}); setTimeout(warm, 1500); document.addEventListener("visibilitychange", () => { if(!document.hidden) warm(); }); (async () => {
+  const rsP = loadResellerShop();
   const {data:s} = await SB.auth.getSession();
   if(s.session){ ME = mapUser(s.session.user); await loadOrders(); refreshUser(); }
   SB.auth.onAuthStateChange(ev => { if(ev === "PASSWORD_RECOVERY") openModal(`<div class="hd"><h5>Password baru</h5><button class="x" data-close aria-label="Tutup">✕</button></div><input class="in" id="np_pw" type="password" placeholder="Password baru (minimal 6 karakter)" autocomplete="new-password"><div class="err" id="np_err" role="alert"></div><button class="btn" id="np_save" type="button" style="width:100%;margin-top:8px">Simpan password</button>`); });
   loadMyReseller();
-  await Promise.all([syncRemote(), loadResellerShop()]);
+  await Promise.all([syncRemote(), rsP]);
   document.addEventListener("visibilitychange", () => { if(!document.hidden) syncRemote(); });
   setInterval(() => { if(!document.hidden) syncRemote(); }, 30000);
 })(); }
