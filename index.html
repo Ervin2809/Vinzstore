@@ -540,7 +540,12 @@ function normDB(d){
 }
 let DB = normDB((SB ? load("vs_cache", null) : load(KEY.db, null)) || PUBLISHED_DATA || clone(DEFAULT_DB));
 let RAW = DB, RS_ACTIVE = null, RSME = null, RSD = null;
-const RSLUG = (new URLSearchParams(location.search).get("r") || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30);
+const MAIN_HOST = "vinzprostore.web.id";   // domain utama tokomu
+const SUBDOMAINS_ON = false;               // ubah ke true setelah wildcard DNS + Worker Cloudflare aktif
+const HOST = location.hostname.toLowerCase();
+let RSLUG = (new URLSearchParams(location.search).get("r") || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30);
+{ const sub = HOST.endsWith("." + MAIN_HOST) ? HOST.slice(0, -(MAIN_HOST.length + 1)) : ""; if(!RSLUG && sub !== "www" && /^[a-z0-9-]{3,30}$/.test(sub)) RSLUG = sub; }
+const CUSTOM_HOST = (!RSLUG && HOST !== MAIN_HOST && HOST !== "www." + MAIN_HOST && !HOST.endsWith("." + MAIN_HOST) && !/^(localhost|127\.|.*\.github\.io$|.*\.pages\.dev$|.*\.workers\.dev$)/.test(HOST)) ? HOST : "";
 function overlayDB(raw){
   if(!RS_ACTIVE) return raw;
   const d = clone(raw), r = RS_ACTIVE, nm = (r.shop && r.shop.name) || RSLUG;
@@ -549,7 +554,9 @@ function overlayDB(raw){
   return d;
 }
 async function loadResellerShop(){
-  if(!SB || !RSLUG) return;
+  if(!SB) return;
+  if(!RSLUG && CUSTOM_HOST){ const {data:dm} = await SB.from("reseller_domains").select("slug").eq("domain", CUSTOM_HOST).eq("status", "active").maybeSingle(); if(dm) RSLUG = dm.slug; }
+  if(!RSLUG) return;
   const {data} = await SB.from("reseller_shops").select("slug,shop,prices,pay").eq("slug", RSLUG).maybeSingle();
   if(!data){ flash("Toko reseller tidak ditemukan."); return; }
   data.shop = data.shop || {}; data.prices = data.prices || {}; data.pay = data.pay || {mode: "web"};
@@ -1125,14 +1132,29 @@ async function loadMyReseller(){
   if(mi) mi.style.display = "";
 }
 $("mReseller").addEventListener("click", e => { e.preventDefault(); closeAll(); openRsPanel(); });
-const rsLink = () => location.origin + location.pathname + "?r=" + RSME.slug;
+const rsLink = () => SUBDOMAINS_ON ? "https://" + RSME.slug + "." + MAIN_HOST : "https://" + MAIN_HOST + "/?r=" + RSME.slug;
+async function domCall(action, domain, slug){
+  const {data, error} = await SB.functions.invoke("domain", {body:{action, domain, slug}});
+  if(error && !data){ let m = error.message; try{ if(error.context && error.context.json){ const j = await error.context.json(); m = j.error || m; } }catch(_){}
+    return {ok:false, error:m, missing:!!(error.context && error.context.status === 404)}; }
+  return data || {ok:false, error:"Tidak ada respons"};
+}
+function domGuide(x){
+  const i = x.cf_info; if(x.status === "active" || !i || !i.fallback) return "";
+  return `<small style="color:var(--muted);display:block;word-break:break-all;margin-top:4px">Di pengaturan DNS domain ini, tambahkan:<br>• CNAME <b>${esc(x.domain)}</b> → <b>${esc(i.fallback)}</b>${i.txt ? `<br>• TXT <b>${esc(i.txt.name)}</b> → <b>${esc(i.txt.value)}</b>` : ""}<br>Status: ${esc(i.status || "menunggu")} · SSL: ${esc(i.ssl || "-")}. Jika registrar tidak mengizinkan CNAME di domain utama, pakai subdomain seperti toko.domainmu.com.</small>`;
+}
+const cleanDomain = v => String(v || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/[\/?#].*$/, "").replace(/^www\./, "");
+const okDomain = d => /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(d) && d !== MAIN_HOST && !d.endsWith("." + MAIN_HOST);
 async function openRsPanel(){
   if(!RSME) return;
   RSD = {name:RSME.shop.name || "", wa:RSME.shop.wa || "", about:RSME.shop.about || "", prices:Object.assign({}, RSME.prices), mode:RSME.pay.mode || "web", img:RSME.pay.img || "", key:"", secret:"", hasKey:false};
   const {data} = await SB.from("reseller_secrets").select("api_key").eq("slug", RSME.slug).maybeSingle();
   RSD.hasKey = !!(data && data.api_key);
   await loadRsBal();
+  RSD.doms = (await SB.from("reseller_domains").select("domain,status,cf_info").eq("slug", RSME.slug)).data || [];
   drawRs();
+  const pend = RSD.doms.filter(x => x.status === "pending" && x.cf_info);
+  if(pend.length){ await Promise.all(pend.map(x => domCall("status", x.domain, RSME.slug))); RSD.doms = (await SB.from("reseller_domains").select("domain,status,cf_info").eq("slug", RSME.slug)).data || []; if(document.getElementById("rs_name")){ readRs(); drawRs(); } }
 }
 async function loadRsBal(){
   const [b, l] = await Promise.all([SB.rpc("rs_balance", {s:RSME.slug}), SB.from("reseller_ledger").select("*").eq("slug", RSME.slug).order("created_at", {ascending:false}).limit(100)]);
@@ -1160,6 +1182,9 @@ function drawRs(){
     <div class="bcard"><label class="lbl">Saldo tersedia</label><div style="font-size:24px;font-weight:800">${rp(d.bal || 0)}</div><small style="color:var(--muted)">Menunggu pembayaran lunas: ${rp(d.pend || 0)}</small>
       <div class="ordact"><button type="button" data-rsact="settle">Perbarui saldo</button><button type="button" data-rsact="wd">Tarik saldo</button><button type="button" data-rsact="ledger">Riwayat saldo</button></div></div>
     <div class="bcard"><label class="lbl">Link tokomu</label><input class="in" readonly value="${esc(rsLink())}" onclick="this.select()"><div class="ordact"><button type="button" data-rsact="copy">Salin link</button><button type="button" data-rsact="orders">Order tokoku</button></div></div>
+    <div class="bcard"><label class="lbl">Domain sendiri (opsional)</label>${(d.doms || []).map(x => `<div style="display:flex;gap:8px;align-items:center;margin:6px 0"><b style="flex:1;word-break:break-all">${esc(x.domain)}</b><span class="bdg ${x.status === "active" ? "s" : "p"}">${x.status === "active" ? "Aktif" : "Menunggu DNS"}</span>${x.status === "pending" ? `<button type="button" class="btn sec sm" data-rsact="domchk" data-d="${esc(x.domain)}">Cek</button><button type="button" class="btn sec sm" data-rsact="domdel" data-d="${esc(x.domain)}">Batal</button>` : ""}</div>${domGuide(x)}`).join("")}
+      <input class="in" id="rs_dom" placeholder="contoh: pinstore.com"><div class="ordact"><button type="button" data-rsact="domadd">Ajukan domain</button></div>
+      <p class="empty-adm">Beli domain di registrar mana saja, ajukan di sini, lalu ikuti petunjuk DNS yang muncul. Setelah DNS benar, domain aktif otomatis (tekan Cek jika belum).</p></div>
     <div class="bcard"><label class="lbl">Nama toko</label><input class="in" id="rs_name" value="${esc(d.name)}" maxlength="30"><label class="lbl">Nomor WhatsApp</label><input class="in" id="rs_wa" value="${esc(d.wa)}" placeholder="08xxxxxxxxxx"><label class="lbl">Deskripsi singkat</label><input class="in" id="rs_about" value="${esc(d.about)}" maxlength="140"></div>
     <div class="bcard"><label class="lbl">Metode pembayaran</label><select class="in" id="rs_mode" data-rs="mode"><option value="web"${d.mode === "web" ? " selected" : ""}>QRIS web Vinzstore (otomatis)</option><option value="qrispw"${d.mode === "qrispw" ? " selected" : ""}>QRIS.PW milikku (otomatis)</option><option value="manual"${d.mode === "manual" ? " selected" : ""}>QRIS milikku (upload gambar, konfirmasi manual)</option></select>${payBox}</div>
     <p class="empty-adm">Kosongkan harga untuk memakai harga normal. Harga tidak boleh di bawah modalmu.</p>${prods}
@@ -1213,6 +1238,27 @@ $("modal").addEventListener("click", async e => {
     if(error){ b.disabled = false; flash(error.message); return; }
     await loadRsBal(); flash("Penarikan diajukan. Admin akan memprosesnya."); drawRs();
   }
+  else if(a === "domadd"){
+    const dm = cleanDomain($("rs_dom").value);
+    if(!okDomain(dm)){ flash("Domain tidak valid. Contoh: toko.pinstore.com"); return; }
+    b.disabled = true; let r = await domCall("add", dm, RSME.slug);
+    if(r.missing){ const x = await SB.from("reseller_domains").insert({domain:dm, slug:RSME.slug, status:"pending"}); r = x.error ? {ok:false, error:x.error.message} : {ok:true, manual:true}; }
+    b.disabled = false;
+    if(!r.ok){ flash(/duplicate|unique|terdaftar/i.test(r.error) ? "Domain ini sudah terdaftar." : r.error); return; }
+    readRs(); RSD.doms = (await SB.from("reseller_domains").select("domain,status,cf_info").eq("slug", RSME.slug)).data || [];
+    flash(r.manual ? "Domain diajukan. Admin akan menghubungkannya." : "Domain didaftarkan. Ikuti petunjuk DNS."); drawRs();
+  }
+  else if(a === "domchk"){
+    b.disabled = true; const r = await domCall("status", b.dataset.d, RSME.slug); readRs();
+    RSD.doms = (await SB.from("reseller_domains").select("domain,status,cf_info").eq("slug", RSME.slug)).data || [];
+    flash(!r.ok ? r.error : r.status === "active" ? "Domain aktif!" : "Belum aktif. Pastikan DNS sudah benar, lalu coba lagi beberapa menit."); drawRs();
+  }
+  else if(a === "domdel"){
+    let r = await domCall("remove", b.dataset.d, RSME.slug);
+    if(r.missing){ const x = await SB.from("reseller_domains").delete().eq("domain", b.dataset.d).eq("status", "pending"); r = x.error ? {ok:false, error:x.error.message} : {ok:true}; }
+    if(!r.ok){ flash(r.error); return; }
+    readRs(); RSD.doms = (await SB.from("reseller_domains").select("domain,status,cf_info").eq("slug", RSME.slug)).data || []; drawRs();
+  }
   else if(a === "back") drawRs();
 });
 $("modal").addEventListener("change", async e => {
@@ -1241,8 +1287,29 @@ async function loadAdminResellers(){
   ARS = (a.data || []).map(t => Object.assign({}, t, {shop:(sm[t.slug] || {}).shop || {}, pay:(sm[t.slug] || {}).pay || {}}));
   const ML = {web:"QRIS web", qrispw:"QRIS.PW sendiri", manual:"QRIS manual"};
   el.innerHTML = ARS.length ? ARS.map(r => `<div class="hist"><b>${esc(r.shop.name || r.slug)}</b>${esc(r.email)}<br><small>${esc(location.origin + location.pathname)}?r=${esc(r.slug)}<br>Pembayaran: ${esc(ML[r.pay.mode] || "QRIS web")}<br>Saldo reseller: <b>${rp((bm[r.slug] || {}).balance || 0)}</b> · menunggu bayar ${rp((bm[r.slug] || {}).pending || 0)}${Number((bm[r.slug] || {}).wd_pending) ? ' · <b style="color:#f59e0b">' + bm[r.slug].wd_pending + ' penarikan diminta</b>' : ""}</small>
-    <div class="ordact"><input class="in" type="number" style="width:90px;flex:none" data-disc="${esc(r.slug)}" value="${Number(r.discount) || 0}" min="0" max="90" aria-label="Diskon modal persen"><button type="button" data-act="rsLed" data-slug="${esc(r.slug)}">Mutasi saldo</button><button type="button" data-act="rsDisc" data-slug="${esc(r.slug)}">Simpan diskon %</button><button type="button" data-act="rsDel" data-slug="${esc(r.slug)}">Hapus</button></div></div>`).join("") : '<p class="empty-adm">Belum ada reseller.</p>';
+    <div class="ordact"><input class="in" type="number" style="width:90px;flex:none" data-disc="${esc(r.slug)}" value="${Number(r.discount) || 0}" min="0" max="90" aria-label="Diskon modal persen"><button type="button" data-act="rsLed" data-slug="${esc(r.slug)}">Mutasi saldo</button><button type="button" data-act="rsDom" data-slug="${esc(r.slug)}">Domain</button><button type="button" data-act="rsDisc" data-slug="${esc(r.slug)}">Simpan diskon %</button><button type="button" data-act="rsDel" data-slug="${esc(r.slug)}">Hapus</button></div></div>`).join("") : '<p class="empty-adm">Belum ada reseller.</p>';
 }
+let ADMDOM = "";
+async function openAdmDomains(slug){
+  ADMDOM = slug;
+  const {data} = await SB.from("reseller_domains").select("domain,status,cf_info").eq("slug", slug).order("created_at");
+  const sub = slug + "." + MAIN_HOST;
+  openModal(`<div class="hd"><h5>Domain: ${esc(slug)}</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox">
+    <div class="bcard"><label class="lbl">Subdomain otomatis</label><b>${esc(sub)}</b><p class="empty-adm">Aktif otomatis setelah wildcard DNS dan Worker Cloudflare dipasang (sekali saja).</p></div>
+    <div class="bcard"><label class="lbl">Domain sendiri</label>${(data || []).map(x => `<div style="display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap"><b style="flex:1;word-break:break-all">${esc(x.domain)}</b><span class="bdg ${x.status === "active" ? "s" : "p"}">${x.status === "active" ? "Aktif" : "Menunggu"}</span>${x.status === "pending" ? `<button type="button" class="btn sec sm" data-dom="chk" data-d="${esc(x.domain)}">Cek status</button><button type="button" class="btn sm" data-dom="on" data-d="${esc(x.domain)}">Aktifkan manual</button>` : ""}<button type="button" class="btn sec sm" data-dom="del" data-d="${esc(x.domain)}">Hapus</button></div>${domGuide(x)}`).join("") || '<p class="empty-adm">Belum ada.</p>'}
+      <input class="in" id="adm_dom" placeholder="tambah domain: pinstore.com"><div class="ordact"><button type="button" data-dom="add">Tambah domain</button></div>
+      <p class="empty-adm">Domain didaftarkan ke Cloudflare otomatis dan menjadi Aktif sendiri setelah DNS-nya benar. "Aktifkan manual" hanya untuk kasus khusus.</p></div></div>`);
+}
+$("modal").addEventListener("click", async e => {
+  const b = e.target.closest("[data-dom]"); if(!b || !SB || !isAdmin()) return;
+  const a = b.dataset.dom, d = b.dataset.d; let r;
+  if(a === "on") r = await SB.from("reseller_domains").update({status:"active"}).eq("domain", d);
+  else if(a === "chk"){ const x = await domCall("status", d, ADMDOM); flash(!x.ok ? x.error : x.status === "active" ? "Domain aktif!" : "Belum aktif, DNS belum terdeteksi."); }
+  else if(a === "del"){ if(!confirm("Hapus domain " + d + "?")) return; let x = await domCall("remove", d, ADMDOM); if(x.missing) x = await SB.from("reseller_domains").delete().eq("domain", d).then(q => q.error ? {ok:false, error:q.error.message} : {ok:true}); if(!x.ok) flash(x.error); }
+  else if(a === "add"){ const dm = cleanDomain($("adm_dom").value); if(!okDomain(dm)){ flash("Domain tidak valid."); return; } const x = await domCall("add", dm, ADMDOM); if(!x.ok){ flash(x.error); } else flash(x.manual ? "Domain ditambahkan (menunggu diaktifkan)." : "Domain didaftarkan ke Cloudflare. Reseller perlu mengatur DNS."); }
+  if(r && r.error) flash(/duplicate|unique/i.test(r.error.message) ? "Domain sudah dipakai." : "Gagal: " + r.error.message);
+  openAdmDomains(ADMDOM);
+});
 let ADMLED = {slug:"", rows:[]};
 async function openAdmLedger(slug){
   const [b, l] = await Promise.all([SB.rpc("rs_balance", {s:slug}), SB.from("reseller_ledger").select("*").eq("slug", slug).order("created_at", {ascending:false}).limit(200)]);
@@ -1435,6 +1502,7 @@ $("admBody").addEventListener("click", async e => {
   }
   else if(act === "rsSettle"){ b.disabled = true; SB.functions.invoke("qris", {body:{action:"settle"}}).then(({data}) => { b.disabled = false; flash(data && data.success ? "Dicek " + data.checked + " pembayaran, " + data.paid + " lunas." : "Gagal memperbarui."); loadAdminResellers(); }); }
   else if(act === "rsLed"){ openAdmLedger(b.dataset.slug); }
+  else if(act === "rsDom"){ openAdmDomains(b.dataset.slug); }
   else if(act === "rsDisc"){
     const sl = b.dataset.slug, v = Number(document.querySelector('[data-disc="' + sl + '"]').value);
     if(!(v >= 0 && v <= 90)){ flash("Diskon 0 sampai 90."); return; }
