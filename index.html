@@ -1132,7 +1132,8 @@ async function loadMyReseller(){
   if(mi) mi.style.display = "";
 }
 $("mReseller").addEventListener("click", e => { e.preventDefault(); closeAll(); openRsPanel(); });
-const rsLink = () => SUBDOMAINS_ON ? "https://" + RSME.slug + "." + MAIN_HOST : "https://" + MAIN_HOST + "/?r=" + RSME.slug;
+const slugLink = sl => SUBDOMAINS_ON ? "https://" + sl + "." + MAIN_HOST : "https://" + MAIN_HOST + "/?r=" + sl;
+const rsLink = () => slugLink(RSME.slug);
 async function domCall(action, domain, slug){
   const {data, error} = await SB.functions.invoke("domain", {body:{action, domain, slug}});
   if(error && !data){ let m = error.message; try{ if(error.context && error.context.json){ const j = await error.context.json(); m = j.error || m; } }catch(_){}
@@ -1150,6 +1151,7 @@ async function openRsPanel(){
   RSD = {name:RSME.shop.name || "", wa:RSME.shop.wa || "", about:RSME.shop.about || "", prices:Object.assign({}, RSME.prices), mode:RSME.pay.mode || "web", img:RSME.pay.img || "", key:"", secret:"", hasKey:false};
   const {data} = await SB.from("reseller_secrets").select("api_key").eq("slug", RSME.slug).maybeSingle();
   RSD.hasKey = !!(data && data.api_key);
+  await SB.functions.invoke("qris", {body:{action:"settle", reseller:RSME.slug}}).catch(() => {});
   await loadRsBal();
   RSD.doms = (await SB.from("reseller_domains").select("domain,status,cf_info").eq("slug", RSME.slug)).data || [];
   drawRs();
@@ -1270,7 +1272,7 @@ $("modal").addEventListener("change", async e => {
 /* --- admin: kelola reseller --- */
 let ARS = [];
 function admResellers(){
-  setTimeout(loadAdminResellers, 0);
+  setTimeout(() => { loadAdminResellers(); if(SB) SB.functions.invoke("qris", {body:{action:"settle"}}).then(() => { if($("rsRows")) loadAdminResellers(); }); }, 0);
   return `<div class="bcard" style="margin-top:16px"><b>Tambah reseller</b>
     <label class="lbl">Email akun reseller (harus daftar dulu di web)</label><input class="in" id="rs_email" type="email" placeholder="email@gmail.com">
     <label class="lbl">Nama link (huruf kecil/angka/-, 3-30 karakter)</label><input class="in" id="rs_slug" placeholder="pinstore">
@@ -1286,7 +1288,7 @@ async function loadAdminResellers(){
   const sm = {}; (b.data || []).forEach(x => sm[x.slug] = x);
   ARS = (a.data || []).map(t => Object.assign({}, t, {shop:(sm[t.slug] || {}).shop || {}, pay:(sm[t.slug] || {}).pay || {}}));
   const ML = {web:"QRIS web", qrispw:"QRIS.PW sendiri", manual:"QRIS manual"};
-  el.innerHTML = ARS.length ? ARS.map(r => `<div class="hist"><b>${esc(r.shop.name || r.slug)}</b>${esc(r.email)}<br><small>${esc(location.origin + location.pathname)}?r=${esc(r.slug)}<br>Pembayaran: ${esc(ML[r.pay.mode] || "QRIS web")}<br>Saldo reseller: <b>${rp((bm[r.slug] || {}).balance || 0)}</b> · menunggu bayar ${rp((bm[r.slug] || {}).pending || 0)}${Number((bm[r.slug] || {}).wd_pending) ? ' · <b style="color:#f59e0b">' + bm[r.slug].wd_pending + ' penarikan diminta</b>' : ""}</small>
+  el.innerHTML = ARS.length ? ARS.map(r => `<div class="hist"><b>${esc(r.shop.name || r.slug)}</b>${esc(r.email)}<br><small>${esc(slugLink(r.slug))}<br>Pembayaran: ${esc(ML[r.pay.mode] || "QRIS web")}<br>Saldo reseller: <b>${rp((bm[r.slug] || {}).balance || 0)}</b> · menunggu bayar ${rp((bm[r.slug] || {}).pending || 0)}${Number((bm[r.slug] || {}).wd_pending) ? ' · <b style="color:#f59e0b">' + bm[r.slug].wd_pending + ' penarikan diminta</b>' : ""}</small>
     <div class="ordact"><input class="in" type="number" style="width:90px;flex:none" data-disc="${esc(r.slug)}" value="${Number(r.discount) || 0}" min="0" max="90" aria-label="Diskon modal persen"><button type="button" data-act="rsLed" data-slug="${esc(r.slug)}">Mutasi saldo</button><button type="button" data-act="rsDom" data-slug="${esc(r.slug)}">Domain</button><button type="button" data-act="rsDisc" data-slug="${esc(r.slug)}">Simpan diskon %</button><button type="button" data-act="rsDel" data-slug="${esc(r.slug)}">Hapus</button></div></div>`).join("") : '<p class="empty-adm">Belum ada reseller.</p>';
 }
 let ADMDOM = "";
@@ -1509,8 +1511,8 @@ $("admBody").addEventListener("click", async e => {
     SB.from("reseller_terms").update({discount:v}).eq("slug", sl).then(({error}) => flash(error ? "Gagal: " + error.message : "Diskon disimpan."));
   }
   else if(act === "rsDel"){
-    if(!confirm("Hapus reseller ini beserta harga dan pengaturannya?")) return;
-    SB.from("reseller_terms").delete().eq("slug", b.dataset.slug).then(({error}) => { flash(error ? (/foreign|violates/i.test(error.message) ? "Reseller punya riwayat saldo, tidak bisa dihapus." : "Gagal: " + error.message) : "Reseller dihapus."); loadAdminResellers(); });
+    if(!confirm("Hapus reseller ini beserta harga dan pengaturannya? Entri penjualan yang belum lunas atau kedaluwarsa ikut dihapus.")) return;
+    SB.from("reseller_ledger").delete().eq("slug", b.dataset.slug).eq("kind", "sale").in("status", ["pending", "expired"]).then(() => SB.from("reseller_terms").delete().eq("slug", b.dataset.slug)).then(({error}) => { flash(error ? (/foreign|violates/i.test(error.message) ? "Reseller punya saldo/penjualan lunas/penarikan, tidak bisa dihapus." : "Gagal: " + error.message) : "Reseller dihapus."); loadAdminResellers(); });
   }
   else if(act === "ordReload"){ loadAdminOrders(); }
   else if(act === "ordCheck"){ const o = AORD.find(x => x.id === b.dataset.oid); if(o){ b.disabled = true; b.textContent = "Mengecek..."; checkTrx(o).then(drawAdminOrders); } }
