@@ -79,7 +79,7 @@ a{color:inherit;text-decoration:none}
 /* cards */
 .rail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;scrollbar-width:none}
 .rail::-webkit-scrollbar{display:none}
-.rail .card{min-width:152px;max-width:152px;scroll-snap-align:start}
+.rail .card{min-width:128px;max-width:128px;scroll-snap-align:start}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:6px;position:relative}
 .card .name{font-size:11.5px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
@@ -111,6 +111,12 @@ textarea.in{resize:vertical;min-height:110px;font:inherit;line-height:1.5}
 .ordact a,.ordact button{font-size:12px;font-weight:700;border-radius:99px;padding:6px 12px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);text-decoration:none}
 html.rs-wait body{opacity:0}
 body{transition:opacity .15s}
+.plf{margin:8px 0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.6}
+.docs pre{background:var(--surface-2);padding:10px;border-radius:10px;overflow:auto;font-size:12px;white-space:pre-wrap;word-break:break-all;margin:6px 0 12px;color:var(--text)}
+.docs p,.docs small{color:var(--muted);font-size:13px;line-height:1.55}
+.howbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:520px;margin:16px auto 0;border:0;border-radius:14px;padding:15px 18px;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;font-weight:800;font-size:15px;letter-spacing:.04em;box-shadow:0 8px 22px rgba(225,29,72,.35)}
+.howbtn:active{transform:scale(.99)}
+.howbtn svg{flex:none}
 /* tema terang */
 html[data-theme="light"]{--bg:#f3f5fb;--surface:#ffffff;--surface-2:#eceff8;--line:#d9dff0;--text:#141b34;--muted:#5a6483;--accent-2:#3b54e8;color-scheme:light}
 html[data-theme="light"] .top{background:rgba(255,255,255,.92)}
@@ -165,6 +171,25 @@ footer{margin-top:40px;padding:28px 0 100px}
 .cols h4{font-size:14px;margin-bottom:8px}
 .cols a{display:block;font-size:13px;color:var(--muted);padding:3px 0}
 .copy{margin-top:20px;font-size:11.5px;color:var(--muted)}
+/* footer berwarna: tema gelap = biru, tema terang = hijau */
+.foot{background:linear-gradient(160deg,#1e3a8a,#1d4ed8);border-color:#3b63e0;color:#fff}
+html[data-theme="light"] .foot{background:linear-gradient(160deg,#15803d,#166534);border-color:#22a559}
+.foot .brand,.foot h4,.foot .gx h4{color:#fff}
+.foot .brand b{color:#bfdbfe}
+html[data-theme="light"] .foot .brand b{color:#bbf7d0}
+.foot p,.foot .cols a,.foot .copy{color:rgba(255,255,255,.86)}
+.foot .cols a:hover{color:#fff;text-decoration:underline}
+.foot .soc a{background:rgba(255,255,255,.16);color:#fff}
+/* logo toko */
+.logo{overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:cover;display:block}
+/* halaman reseller */
+.jhero{padding:18px 0 6px}.jhero h2{font-size:22px;margin:0 0 6px}.jhero p{color:var(--muted);font-size:14px;line-height:1.55}
+.jsec{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px;font-weight:800}
+.opt{display:block;width:100%;text-align:left;border:2px solid var(--line);border-radius:14px;padding:14px;margin:8px 0;background:var(--surface);color:var(--text)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--surface-2)}
+.opt[disabled]{opacity:.55}
+.opt b{display:block;font-size:15px}.opt small{color:var(--muted);display:block;margin-top:2px;font-size:12.5px}
 
 /* floating */
 .help{position:fixed;right:14px;bottom:16px;z-index:25;background:#0e1730;border:1px solid var(--line);border-radius:999px;padding:11px 16px;font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.45);display:flex;gap:8px;align-items:center}
@@ -305,7 +330,7 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
 
 @media(min-width:700px){
   .grid{grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px}
-  .rail .card{min-width:176px;max-width:176px}
+  .rail .card{min-width:148px;max-width:148px}
   .card .name{font-size:13px}
   .card .price{font-size:15px}
   #productView .wrap{max-width:640px}
@@ -333,6 +358,8 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
 
     <div class="ticker" id="ticker" hidden aria-label="Informasi toko"></div>
 
+    <button class="howbtn" id="howBtn" type="button"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.4 2.6 2.2 4.4 5 4.6"/></svg>CARA PEMBELIAN</button>
+
     <section class="sec" id="popSec">
       <h3>Produk Populer</h3>
       <div class="sub">Paling banyak terjual minggu ini</div>
@@ -359,7 +386,7 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
       </div>
       <div class="cols">
         <div><h4>Informasi</h4><a href="#" data-info="how">Cara Beli</a><a href="#" data-info="faq">Bantuan / FAQ</a><a href="#" data-info="terms">Syarat Ketentuan</a><a href="#" data-info="privacy">Kebijakan Privasi</a></div>
-        <div><h4>Layanan</h4><a href="#popSec">Produk Populer</a><a id="reseller" href="#" target="_blank" rel="noopener">Join Reseller</a></div>
+        <div><h4>Layanan</h4><a href="#popSec">Produk Populer</a><a id="reseller" href="#">Join Reseller</a></div>
       </div>
       <div id="strips"></div>
       <div class="copy">© <span id="yr"></span> <span id="brand3"></span>. All rights reserved.</div>
@@ -418,6 +445,18 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
   </div></div>
 </div>
 
+<!-- HALAMAN RESELLER -->
+<div id="joinView" hidden>
+  <header class="top">
+    <div class="wrap">
+      <button class="back" id="joinBack" aria-label="Kembali">←</button>
+      <div class="brand" id="brandJ" style="margin:0 auto"></div>
+      <div style="width:36px"></div>
+    </div>
+  </header>
+  <main class="wrap" style="padding-bottom:60px;max-width:640px"><div id="joinBody"></div></main>
+</div>
+
 <!-- ADMIN -->
 <div id="adminView" hidden>
   <header class="top">
@@ -439,6 +478,8 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
   <div class="hd"><h5>MENU</h5><button class="x" id="closeD" aria-label="Tutup">✕</button></div>
   <div id="drawerBody"></div>
   <nav class="menu">
+    <a id="mJoin" href="#" role="button">Jadi Reseller</a>
+    <a id="mMember" href="#" role="button" style="display:none">Akun Reseller</a>
     <a id="mReseller" href="#" role="button" style="display:none">Panel Reseller</a>
     <a id="mTheme" href="#" role="button">Ganti tema</a>
     <a id="mWa" href="#" target="_blank" rel="noopener">WhatsApp Admin</a>
@@ -515,7 +556,7 @@ const save = (k, v) => { try { store.setItem(k, JSON.stringify(v)); return true;
 /* ---------- data toko ---------- */
 const DEFAULT_SHOP = {
   brandA: CONFIG.brandA, brandB: CONFIG.brandB, about: CONFIG.about,
-  wa: CONFIG.wa, telegram: CONFIG.telegram, channel: CONFIG.channel,
+  wa: CONFIG.wa, telegram: CONFIG.telegram, channel: CONFIG.channel, logo: "", howUrl: "",
   how: "1. Pilih produk dan paket yang kamu mau.\n2. Isi nomor WhatsApp aktif, lalu pilih metode pembayaran.\n3. Bayar dengan QRIS: scan memakai e-wallet atau m-banking apa saja. Pembayaran terdeteksi otomatis.\n4. Setelah lunas, kirim konfirmasi ke admin lewat WhatsApp untuk menerima pesananmu.\n5. Semua pesanan bisa dilihat lagi di menu Riwayat Order.",
   faq: "Berapa lama pesanan diproses?\nSetelah pembayaran terkonfirmasi, admin memproses secepatnya. Jam proses mengikuti jam online admin.\n\nQR pembayaran kedaluwarsa, bagaimana?\nQR berlaku 10 menit. Jika habis, buat pesanan baru.\n\nSaya sudah bayar tapi belum dapat pesanan?\nBuka Riwayat Order, ketuk pesananmu untuk melihat status, lalu hubungi admin lewat WhatsApp dengan menyebut Order ID.\n\nBisa refund?\nProduk digital yang sudah dikirim tidak dapat direfund, kecuali ada kendala dari pihak toko.",
   terms: "1. Dengan membeli, kamu setuju mengikuti syarat ini.\n2. Pastikan produk, paket, dan data yang kamu isi sudah benar sebelum membayar.\n3. Pembayaran yang sudah berhasil tidak dapat dibatalkan.\n4. Produk digital yang sudah dikirim tidak dapat dikembalikan, kecuali terbukti bermasalah dari pihak toko.\n5. Toko berhak menolak atau membatalkan pesanan yang mencurigakan dan mengembalikan dana yang sudah dibayar.\n6. Syarat ini dapat berubah sewaktu-waktu.",
@@ -542,7 +583,7 @@ function normDB(d){
   return {products, banners, ticker: t, shop, strips: {games: mk("games", "Game Populer"), pay: mk("pay", "Metode Pembayaran")}};
 }
 let DB = normDB((SB ? load("vs_cache", null) : load(KEY.db, null)) || PUBLISHED_DATA || clone(DEFAULT_DB));
-let RAW = DB, RS_ACTIVE = null, RSME = null, RSD = null;
+let RAW = DB, RS_ACTIVE = null, RSME = null, RSD = null, MEMBER = null, PLANS = [];
 const MAIN_HOST = "vinzprostore.web.id";   // domain utama tokomu
 const SUBDOMAINS_ON = true;                // wildcard DNS + Worker reseller-proxy sudah aktif
 const HOST = location.hostname.toLowerCase();
@@ -550,10 +591,15 @@ let RSLUG = (new URLSearchParams(location.search).get("r") || "").toLowerCase().
 { const sub = HOST.endsWith("." + MAIN_HOST) ? HOST.slice(0, -(MAIN_HOST.length + 1)) : ""; if(!RSLUG && sub !== "www" && /^[a-z0-9-]{3,30}$/.test(sub)) RSLUG = sub; }
 const CUSTOM_HOST = (!RSLUG && HOST !== MAIN_HOST && HOST !== "www." + MAIN_HOST && !HOST.endsWith("." + MAIN_HOST) && !/^(localhost|127\.|.*\.github\.io$|.*\.pages\.dev$|.*\.workers\.dev$)/.test(HOST)) ? HOST : "";
 function overlayDB(raw){
-  if(!RS_ACTIVE) return raw;
+  if(!RS_ACTIVE){
+    if(!MEMBER || !(Number(MEMBER.discount) > 0) || isAdmin()) return raw;   // harga member di toko utama
+    const dm = clone(raw), k = 1 - Number(MEMBER.discount) / 100;
+    dm.products.forEach(p => p.packages.forEach(pk => { pk[1] = Math.round(pk[1] * k); }));
+    return dm;
+  }
   const d = clone(raw), r = RS_ACTIVE, nm = (r.shop && r.shop.name) || RSLUG;
   d.products.forEach(p => p.packages.forEach((pk, i) => { const v = Number(r.prices[p.id + "|" + i]); if(v > 0) pk[1] = v; }));
-  d.shop = Object.assign({}, d.shop, {brandA: nm, brandB: "", about: (r.shop && r.shop.about) || ("Toko resmi " + nm + "."), wa: (r.shop && r.shop.wa) || d.shop.wa, telegram: "", channel: ""});
+  d.shop = Object.assign({}, d.shop, {brandA: nm, brandB: "", about: (r.shop && r.shop.about) || ("Toko resmi " + nm + "."), wa: (r.shop && r.shop.wa) || d.shop.wa, telegram: "", channel: "", logo: (r.shop && r.shop.logo) || "", howUrl: (r.shop && r.shop.howUrl) || ""});
   return d;
 }
 async function loadResellerShop(){
@@ -571,6 +617,7 @@ async function loadResellerShop(){
 function applyRsUi(){
   const sm = document.querySelector('.pay[data-m="QRIS"] small');
   if(sm && RS_ACTIVE && RS_ACTIVE.pay.mode === "manual") sm.textContent = "Scan QRIS toko, lalu konfirmasi ke penjual";
+  if(RS_ACTIVE){ const sh = RS_ACTIVE.shop || {}, open = !!(sh.open && (sh.offers || []).length); ["mJoin","reseller"].forEach(i => { const el = $(i); if(el) el.style.display = open ? "" : "none"; }); }
 }
 // data reseller yang sudah disisipkan Worker: tampil langsung tanpa menunggu jaringan
 if(window.__RS && window.__RS.slug){
@@ -651,14 +698,14 @@ function applyShop(){
   Object.assign(CONFIG, {brandA: sh.brandA, brandB: sh.brandB, about: sh.about, wa: waNum(sh.wa), telegram: sh.telegram, channel: sh.channel});
   document.title = CONFIG.brandA + " " + CONFIG.brandB + " — Digital Store Otomatis 24 Jam";
   const brandHTML = `${esc(CONFIG.brandA)} <b>${esc(CONFIG.brandB)}</b>`;
-  ["brand","brand2","brandP","brandA"].forEach(i => $(i).innerHTML = brandHTML);
+  ["brand","brand2","brandP","brandA","brandJ"].forEach(i => $(i).innerHTML = brandHTML);
   $("brand3").textContent = CONFIG.brandA + CONFIG.brandB;
   { const ic = document.querySelector('link[rel="icon"]'), l = ((CONFIG.brandA.match(/[A-Za-z0-9]/) || ["V"])[0]).toUpperCase();
-    if(ic) ic.href = "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='#4f6bff'/><text x='32' y='45' font-size='38' font-family='Arial' font-weight='800' text-anchor='middle' fill='white'>" + l + "</text></svg>");
+    if(ic) ic.href = sh.logo ? sh.logo : "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='#4f6bff'/><text x='32' y='45' font-size='38' font-family='Arial' font-weight='800' text-anchor='middle' fill='white'>" + l + "</text></svg>");
     const md = document.querySelector('meta[name="description"]'); if(md) md.content = CONFIG.about; }
-  $("logo").textContent = (CONFIG.brandA[0] || "V").toUpperCase();
+  { const lg = $("logo"); if(sh.logo) lg.innerHTML = `<img src="${esc(sh.logo)}" alt="">`; else lg.textContent = (CONFIG.brandA[0] || "V").toUpperCase(); }
   $("aboutText").textContent = CONFIG.about;
-  ["help","soWa","mWa","reseller"].forEach(i => $(i).href = waLink());
+  ["help","soWa","mWa"].forEach(i => $(i).href = waLink());
   const dead = u => !u || /\/username/i.test(u);
   [[["soTg","mTg"], CONFIG.telegram], [["soCh","mCh"], CONFIG.channel]].forEach(([ids, url]) => ids.forEach(i => { $(i).href = url; $(i).style.display = dead(url) ? "none" : ""; }));
 }
@@ -668,6 +715,10 @@ const INFO_T = {how:"Cara Beli", faq:"Bantuan / FAQ", terms:"Syarat Ketentuan", 
 function showInfo(k){
   openModal(`<div class="hd"><h5>${esc(INFO_T[k])}</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="info">${esc(DB.shop[k])}</div>${k === "faq" ? `<a class="wa" href="${waLink("Halo admin, saya mau tanya.")}" target="_blank" rel="noopener" style="text-decoration:none;display:block;text-align:center">Chat admin</a>` : ""}`);
 }
+$("howBtn").addEventListener("click", () => {
+  const u = String((DB.shop && DB.shop.howUrl) || "").trim();
+  if(/^https:\/\//i.test(u)) window.open(u, "_blank", "noopener"); else showInfo("how");
+});
 document.addEventListener("click", e => { const a = e.target.closest("[data-info]"); if(a){ e.preventDefault(); showInfo(a.dataset.info); } });
 
 /* ---------- tiles / cards ---------- */
@@ -884,7 +935,7 @@ document.addEventListener("submit", async e => {
     if(r.error){ const m = r.error.message || "";
       return err.textContent = /invalid login/i.test(m) ? (reg ? "Gagal masuk setelah daftar. Coba pilih Masuk." : "Email atau password salah. Belum punya akun? Pilih Daftar.") : /not confirmed/i.test(m) ? "Email belum dikonfirmasi. Cek emailmu atau hubungi admin." : /already registered/i.test(m) ? "Email ini sudah terdaftar. Pilih Masuk." : m; }
     if(!r.data.session) return err.textContent = "Cek emailmu untuk konfirmasi, lalu masuk.";
-    ME = mapUser(r.data.session.user); await loadOrders(); loadMyReseller();
+    ME = mapUser(r.data.session.user); await loadOrders(); loadMyReseller(); loadMyMember();
   } else {
   const all = users();
     if(reg){
@@ -916,14 +967,14 @@ $("modal").addEventListener("click", async e => {
   }
 });
 function logout(){
-  if(SB){ SB.auth.signOut(); ME = null; ORD = []; RSME = null; $("mReseller").style.display = "none"; }
+  if(SB){ SB.auth.signOut(); ME = null; ORD = []; RSME = null; $("mReseller").style.display = "none"; MEMBER = null; $("mMember").style.display = "none"; DB = overlayDB(RAW); refreshAll(); }
   store.removeItem(KEY.sess); closeAll(); refreshUser();
   if(!$("adminView").hidden) showHome();
   flash("Kamu sudah keluar.");
 }
 
 /* ---------- views ---------- */
-function showHome(){ $("homeView").hidden = false; $("productView").hidden = true; $("adminView").hidden = true; window.scrollTo(0,0); }
+function showHome(){ $("homeView").hidden = false; $("productView").hidden = true; $("adminView").hidden = true; $("joinView").hidden = true; window.scrollTo(0,0); }
 function fillBuyer(){ if(me() && !$("buyer").value.trim()) $("buyer").value = me().name; $("who").textContent = "@" + curName(); }
 function openProduct(id){
   S.pid = id; S.pkg = 0; S.qty = 1; S.tab = "buy"; $("err").textContent = "";
@@ -931,7 +982,7 @@ function openProduct(id){
   $("pcard").innerHTML = `${tile(p)}<div><h2>${esc(p.name)}</h2><span class="badge">${esc(p.platform)}</span></div>`;
   $("tDesc").innerHTML = `<p>${esc(p.desc || "Belum ada deskripsi.")}</p>`;
   $("tHow").innerHTML = p.how.length ? `<ol>${p.how.map(h => `<li>${esc(h)}</li>`).join("")}</ol>` : `<p>Belum ada panduan.</p>`;
-  $("homeView").hidden = true; $("adminView").hidden = true; $("productView").hidden = false; window.scrollTo(0,0);
+  $("homeView").hidden = true; $("adminView").hidden = true; $("joinView").hidden = true; $("productView").hidden = false; window.scrollTo(0,0);
   fillBuyer(); renderPkgs(); setTab("buy"); updTotal();
 }
 function renderPkgs(){
@@ -1023,15 +1074,16 @@ function openAdmin(){
   if(!isAdmin()) return;
   closeAll();
   A = {tab:"prod", edit:null, banners:clone(DB.banners), strips:clone(DB.strips)};
-  $("homeView").hidden = true; $("productView").hidden = true; $("adminView").hidden = false;
+  $("homeView").hidden = true; $("productView").hidden = true; $("joinView").hidden = true; $("adminView").hidden = false;
   window.scrollTo(0,0); renderAdmin();
 }
 $("admBack").onclick = showHome;
+$("joinBack").onclick = showHome;
 
 function renderAdmin(){
-  $("admTabs").innerHTML = [["prod","Produk"],["ord","Order"],["rs","Reseller"],["ban","Banner"],["gal","Galeri"],["tick","Teks jalan"],["shop","Toko"],["data","Data"]]
+  $("admTabs").innerHTML = [["prod","Produk"],["ord","Order"],["rs","Reseller"],["mem","Member"],["apiord","Pesanan API"],["ban","Banner"],["gal","Galeri"],["tick","Teks jalan"],["shop","Toko"],["data","Data"]]
     .map(([k,l]) => `<button class="atab" data-tab="${k}" aria-pressed="${A.tab===k}">${l}</button>`).join("");
-  $("admBody").innerHTML = {prod:admProducts, ord:admOrders, rs:admResellers, ban:admBanners, gal:admStrips, tick:admTicker, shop:admShop, data:admData}[A.tab]();
+  $("admBody").innerHTML = {prod:admProducts, ord:admOrders, rs:admResellers, mem:admMember, apiord:admApiOrders, ban:admBanners, gal:admStrips, tick:admTicker, shop:admShop, data:admData}[A.tab]();
   if(A.tab === "tick") mountTicker($("tkPrev"), readTicker());
 }
 
@@ -1131,6 +1183,205 @@ function readBanners(){
   });
 }
 
+/* ---------- paket reseller: gabung otomatis/manual, harga member, API key & dokumentasi ---------- */
+async function fnCall(name, body){
+  const {data, error} = await SB.functions.invoke(name, {body});
+  if(error && !data){ let m = error.message; try{ if(error.context && error.context.json){ const j = await error.context.json(); m = j.error || m; } }catch(_){}
+    return {ok:false, error:m, missing:!!(error.context && error.context.status === 404)}; }
+  return data || {ok:false, error:"Tidak ada respons"};
+}
+async function loadPlans(){ if(!SB) return; const {data} = await SB.from("reseller_plans").select("*").eq("active", true).order("tier"); PLANS = data || []; }
+async function loadMyMember(){
+  MEMBER = null; const a = $("mMember"); if(a) a.style.display = "none";
+  if(SB && ME){
+    let {data} = await SB.from("reseller_members").select("*").eq("email", ME.email).maybeSingle();
+    if(!data){ // ada pembayaran gabung yang belum diproses (halaman sempat ditutup)? periksa sekali
+      const ps = await SB.from("reseller_signups").select("id").eq("status", "pending").limit(1);
+      if(ps.data && ps.data.length){ const r = await fnCall("member", {action:"settle"}); if(r.ok && r.paid){ data = (await SB.from("reseller_members").select("*").eq("email", ME.email).maybeSingle()).data; loadMyReseller(); } }
+    }
+    MEMBER = data || null;
+  }
+  if(a && MEMBER){ a.style.display = ""; a.textContent = "Akun Reseller · diskon " + Number(MEMBER.discount) + "%"; }
+  DB = overlayDB(RAW); refreshAll();
+}
+const planOf = t => PLANS.find(p => p.tier === t);
+const JN = {tier:0, slug:"", wa:""};
+let LASTKEY = "";
+$("mJoin").addEventListener("click", e => { e.preventDefault(); closeAll(); openJoinPage(); });
+$("mMember").addEventListener("click", e => { e.preventDefault(); closeAll(); openMemberPanel(); });
+$("reseller").addEventListener("click", e => { e.preventDefault(); openJoinPage(); });
+
+/* ---------- halaman Reseller: pilih paket, lalu otomatis (QRIS) atau manual (WhatsApp) ---------- */
+const JP = {tier:0, mode:"auto", oi:-1};
+async function openJoinPage(){
+  if(!SB){ flash("Fitur ini butuh Supabase aktif."); return; }
+  closeAll();
+  $("homeView").hidden = true; $("productView").hidden = true; $("adminView").hidden = true; $("joinView").hidden = false;
+  window.scrollTo(0, 0);
+  if(RS_ACTIVE){ JP.oi = -1; drawOpenPage(); return; }
+  if(!PLANS.length) await loadPlans();
+  const cur = MEMBER ? MEMBER.tier : 0;
+  if(!JP.tier || JP.tier <= cur){ const nx = PLANS.find(p => p.tier > cur); JP.tier = nx ? nx.tier : 0; }
+  drawJoinPage();
+}
+function drawJoinPage(){
+  const cur = MEMBER ? MEMBER.tier : 0, curP = planOf(cur);
+  const card = p => { const owned = cur >= p.tier, diff = p.price - (curP ? curP.price : 0);
+    return `<button type="button" class="opt" data-jp="tier" data-v="${p.tier}" aria-pressed="${JP.tier === p.tier}"${owned ? " disabled" : ""}><b>${esc(p.name)} · ${rp(p.price)}</b>${owned ? "<small>Paketmu saat ini</small>" : (cur ? `<small>Upgrade: bayar selisih ${rp(diff)}</small>` : "")}
+      <ul class="plf"><li>Harga reseller, diskon ${Number(p.discount)}%</li>${p.api ? "<li>API key + dokumentasi untuk web sendiri</li>" : ""}${p.store ? "<li>Web toko sendiri (subdomain) dengan logo, harga &amp; saldo sendiri</li><li>Bisa membuka reseller sendiri</li>" : ""}</ul></button>`; };
+  const mode = (v, t, d) => `<button type="button" class="opt" data-jp="mode" data-v="${v}" aria-pressed="${JP.mode === v}"><b>${t}</b><small>${d}</small></button>`;
+  const all = PLANS.every(p => cur >= p.tier);
+  $("joinBody").innerHTML = `<div class="jhero"><h2>Program Reseller</h2><p>Beli lebih murah, punya web toko sendiri, atau pasang di web kamu lewat API. Pilih paket, lalu pilih cara bergabung.</p></div>
+    ${all ? '<p class="empty-adm">Kamu sudah memakai paket tertinggi.</p>' : `<div class="jsec">1. Pilih paket</div>${PLANS.map(card).join("") || '<p class="empty-adm">Paket belum tersedia.</p>'}
+    <div class="jsec">2. Pilih cara bergabung</div>
+    ${mode("auto", "Otomatis", "Bayar lewat QRIS. Paket aktif sendiri begitu pembayaran terdeteksi, kapan saja.")}
+    ${mode("manual", "Manual", "Hubungi admin lewat WhatsApp. Admin yang mengaktifkan paketmu setelah kamu bayar.")}
+    <button class="btn" type="button" data-jp="go" style="width:100%;margin-top:14px">${JP.mode === "auto" ? "Lanjut bayar dengan QRIS" : "Hubungi admin via WhatsApp"}</button>`}`;
+}
+function drawOpenPage(){
+  const sh = RS_ACTIVE.shop || {}, offers = sh.offers || [], nm = sh.name || RSLUG;
+  $("joinBody").innerHTML = `<div class="jhero"><h2>Jadi Reseller ${esc(nm)}</h2><p>Gabung sebagai reseller ${esc(nm)}. Pendaftaran diproses langsung oleh pemilik toko lewat WhatsApp.</p></div>
+    <div class="jsec">Pilih paket</div>
+    ${offers.map((o, i) => `<button type="button" class="opt" data-jp="offer" data-v="${i}" aria-pressed="${JP.oi === i}"><b>${esc(o.name)} · ${rp(o.price)}</b>${o.perks ? `<small>${esc(o.perks)}</small>` : ""}</button>`).join("") || '<p class="empty-adm">Belum ada paket.</p>'}
+    <button class="btn" type="button" data-jp="ogo" style="width:100%;margin-top:14px">Hubungi ${esc(nm)} via WhatsApp</button>`;
+}
+function joinGo(){
+  const p = planOf(JP.tier); if(!p){ flash("Pilih paket dulu."); return; }
+  if(JP.mode === "auto"){ joinConfirm(p.tier); return; }
+  window.open(waLink("Halo admin, saya mau gabung reseller paket " + p.name + " (" + rp(p.price) + ") secara manual." + (ME ? "\nEmail akun: " + ME.email : "")), "_blank", "noopener");
+}
+$("joinBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-jp]"); if(!b || b.disabled) return;
+  const a = b.dataset.jp, v = Number(b.dataset.v);
+  if(a === "tier"){ JP.tier = v; drawJoinPage(); }
+  else if(a === "mode"){ JP.mode = b.dataset.v; drawJoinPage(); }
+  else if(a === "go") joinGo();
+  else if(a === "offer"){ JP.oi = v; drawOpenPage(); }
+  else if(a === "ogo"){
+    const o = ((RS_ACTIVE.shop || {}).offers || [])[JP.oi]; if(!o){ flash("Pilih paket dulu."); return; }
+    window.open(waLink("Halo " + ((RS_ACTIVE.shop || {}).name || "") + ", saya mau gabung reseller paket " + o.name + " (" + rp(o.price) + ")."), "_blank", "noopener");
+  }
+});
+
+async function openJoin(){
+  if(!SB){ flash("Fitur ini butuh Supabase aktif."); return; }
+  if(!PLANS.length) await loadPlans();
+  const cur = MEMBER ? MEMBER.tier : 0, curP = planOf(cur);
+  openModal(`<div class="hd"><h5>Gabung Reseller</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox">
+    <p class="empty-adm">Beli produk dengan harga reseller. Aktif otomatis setelah pembayaran QRIS terdeteksi.</p>
+    ${PLANS.map(p => { const owned = cur >= p.tier, diff = p.price - (curP ? curP.price : 0);
+      return `<div class="bcard"><b>${esc(p.name)}</b> · ${rp(p.price)}${cur && !owned ? ` <small>(upgrade ${rp(diff)})</small>` : ""}
+        <ul class="plf"><li>Harga reseller, diskon ${Number(p.discount)}%</li>${p.api ? "<li>API key + dokumentasi untuk web sendiri</li>" : ""}${p.store ? "<li>Web toko sendiri (subdomain), harga &amp; saldo sendiri</li>" : ""}</ul>
+        ${owned ? '<span class="bdg s">Paketmu</span>' : `<button type="button" class="btn" data-jn="pick" data-t="${p.tier}">${cur ? "Upgrade" : "Pilih paket"}</button>`}</div>`; }).join("") || '<p class="empty-adm">Paket belum tersedia.</p>'}
+    <a class="wa" href="${waLink("Halo admin, saya mau gabung reseller secara manual.")}" target="_blank" rel="noopener" style="text-decoration:none;display:block;text-align:center">Gabung manual lewat WhatsApp</a></div>`);
+}
+function joinConfirm(t){
+  const p = planOf(t); if(!p) return; JN.tier = t;
+  if(!ME){ closeAll(); flash("Masuk atau daftar dulu untuk bergabung."); openAuth("login"); return; }
+  const curP = MEMBER ? planOf(MEMBER.tier) : null, pay = p.price - (curP ? curP.price : 0), needSlug = p.store && !(MEMBER && MEMBER.slug);
+  openModal(`<div class="hd"><h5>${esc(p.name)}</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox">
+    <div class="bcard"><b>Bayar ${rp(pay)}</b><br><small style="color:var(--muted)">via QRIS. Paket aktif otomatis setelah lunas.</small>
+      <label class="lbl">Nomor WhatsApp</label><input class="in" id="jn_wa" type="tel" inputmode="numeric" value="${esc(JN.wa)}" placeholder="08xxxxxxxxxx">
+      ${needSlug ? `<label class="lbl">Nama link tokomu</label><input class="in" id="jn_slug" value="${esc(JN.slug)}" placeholder="contoh: pinstore" maxlength="30" autocapitalize="none" autocomplete="off"><small id="jn_prev" style="color:var(--muted)"></small>` : ""}
+      <div class="err" id="jn_err" role="alert"></div>
+      <div class="actions"><button class="btn" type="button" data-jn="pay">Bayar dengan QRIS</button></div></div>
+    <a class="wa" href="${waLink("Halo admin, saya mau gabung reseller paket " + p.name + " (" + rp(p.price) + ") secara manual.\nEmail akun: " + ME.email)}" target="_blank" rel="noopener" style="text-decoration:none;display:block;text-align:center">Gabung manual lewat WhatsApp</a>
+    <button class="ghost" type="button" data-jn="back" style="margin-top:8px">Kembali</button></div>`);
+}
+async function jnPay(btn){
+  const err = $("jn_err"), wa = waNum($("jn_wa").value), se = $("jn_slug"), slug = se ? se.value.trim().toLowerCase() : "";
+  JN.wa = $("jn_wa").value.trim(); JN.slug = slug;
+  if(wa.length < 9){ err.textContent = "Nomor WhatsApp tidak valid."; return; }
+  if(se && !/^[a-z0-9-]{3,30}$/.test(slug)){ err.textContent = "Nama link 3-30 karakter: huruf kecil, angka, atau -."; return; }
+  btn.disabled = true; err.textContent = "Membuat QRIS...";
+  const r = await fnCall("member", {action:"join", tier:JN.tier, slug, phone:wa});
+  btn.disabled = false;
+  if(!r.ok){ err.textContent = r.missing ? "Fitur belum aktif di server. Hubungi admin." : r.error; return; }
+  joinQr(r);
+}
+function joinQr(r){
+  const img = qrImg({qs:r.qris_string || "", qurl:r.qris_url || ""}), exp = Date.now() + 10*60*1000, tok = "jn" + r.id;
+  openModal(`<div class="done"><div class="ok">Scan untuk bayar</div><small style="color:var(--muted)">Paket aktif otomatis setelah pembayaran terdeteksi. Jangan tutup halaman ini.</small>
+    <div class="sum"><div><span>Paket</span><b>${esc(r.plan ? r.plan.name : "Reseller")}</b></div><div><span>Total bayar</span><b>${rp(r.amount)}</b></div></div>
+    <div class="qrbox">${img ? `<img src="${esc(img)}" alt="QRIS">` : "QR tidak tersedia"}</div>
+    <div id="jn_st" data-t="${tok}" style="text-align:center;font-weight:600;margin:6px 0 10px">Menunggu pembayaran... <b id="jn_cd"></b></div>
+    <button class="ghost" data-close>Tutup</button></div>`);
+  let busy = false;
+  const iv = setInterval(async () => {
+    const el = document.getElementById("jn_st"); if(!el || el.dataset.t !== tok) return clearInterval(iv);
+    const left = Math.max(0, exp - Date.now()), cd = document.getElementById("jn_cd");
+    if(cd) cd.textContent = String(Math.floor(left/60000)).padStart(2,"0") + ":" + String(Math.floor(left%60000/1000)).padStart(2,"0");
+    if(busy) return; busy = true; const c = await fnCall("member", {action:"check", id:r.id}); busy = false;
+    const el2 = document.getElementById("jn_st"); if(!el2 || el2.dataset.t !== tok) return clearInterval(iv);
+    if(c.ok && c.status === "paid"){ clearInterval(iv); joinDone(); }
+    else if((c.ok && c.status === "expired") || left === 0){ clearInterval(iv); el2.textContent = "QR kedaluwarsa. Pilih paket lagi."; el2.style.color = "#ef4444"; }
+  }, 3000);
+}
+async function joinDone(){
+  await loadMyMember(); await loadMyReseller();
+  const p = MEMBER ? planOf(MEMBER.tier) : null;
+  openModal(`<div class="hd"><h5>Selamat!</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="done"><div class="ok">Kamu sekarang ${esc(p ? p.name : "Reseller")} ✓</div>
+    <small style="color:var(--muted)">Harga reseller (diskon ${MEMBER ? Number(MEMBER.discount) : 0}%) aktif di toko ini selama kamu login.${RSME ? "<br>Link tokomu: <b>" + esc(rsLink()) + "</b>" : ""}</small>
+    <div class="actions"><button class="btn" type="button" data-jn="acct">Buka Akun Reseller</button>${RSME ? '<button class="btn sec" type="button" data-jn="store">Panel Toko</button>' : ""}</div></div>`);
+}
+async function openMemberPanel(){
+  if(!MEMBER) return;
+  if(!PLANS.length) await loadPlans();
+  const p = planOf(MEMBER.tier) || {name:"Reseller"};
+  let keys = [];
+  if(MEMBER.api){ const {data} = await SB.from("reseller_api_keys").select("id,prefix,label,revoked,last_used,created_at").eq("email", ME.email).order("created_at", {ascending:false}); keys = (data || []).filter(k => !k.revoked); }
+  const more = PLANS.some(x => x.tier > MEMBER.tier);
+  openModal(`<div class="hd"><h5>Akun Reseller</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox">
+    <div class="bcard"><b>${esc(p.name)}</b><br><small style="color:var(--muted)">Diskon reseller ${Number(MEMBER.discount)}% berlaku otomatis di toko utama saat kamu login.</small>
+      <div class="ordact">${more ? '<button type="button" data-mem="upgrade">Upgrade paket</button>' : ""}${MEMBER.store && RSME ? '<button type="button" data-mem="store">Panel Toko</button>' : ""}</div></div>
+    ${MEMBER.api ? `<div class="bcard"><b>API key</b>${keys.map(k => `<div style="display:flex;gap:8px;align-items:center;margin:6px 0"><span style="flex:1"><b>${esc(k.prefix)}…</b> <small>${esc(k.label || "")}${k.last_used ? " · dipakai " + esc(new Date(k.last_used).toLocaleDateString("id-ID")) : ""}</small></span><button type="button" class="btn sec sm" data-mem="revoke" data-id="${k.id}">Cabut</button></div>`).join("") || '<p class="empty-adm">Belum ada API key.</p>'}
+      <input class="in" id="mem_label" placeholder="Label key (opsional)" maxlength="40">
+      <div class="ordact"><button type="button" data-mem="newkey">Buat API key</button><button type="button" data-mem="docs">Dokumentasi API</button></div></div>` : ""}</div>`);
+}
+function openDocs(){
+  const base = SUPABASE_URL + "/functions/v1/member", pre = t => `<pre>${esc(t)}</pre>`;
+  openModal(`<div class="hd"><h5>Dokumentasi API</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox docs">
+    <p>API untuk web milikmu sendiri. Harga yang dikembalikan adalah <b>harga reseller</b> (sudah termasuk diskon paketmu); harga jual di webmu kamu tentukan sendiri. Pembayaran lewat QRIS, dan pesanan yang lunas diteruskan ke admin untuk diproses.</p>
+    <b>Base URL</b>${pre(base)}
+    <b>Header (semua request)</b>${pre("Authorization: Bearer " + SUPABASE_KEY + "\nX-API-Key: vz_live_KUNCI_KAMU\nContent-Type: application/json")}
+    <small>Authorization berisi kunci publik situs (aman). X-API-Key adalah kuncimu: rahasiakan, panggil hanya dari server webmu, jangan ditaruh di kode browser pengunjung.</small>
+    <b>1. Daftar produk &amp; harga reseller</b>${pre("GET " + base + "/products\n\n200 {\n  currency, discount_percent,\n  products: [{ id, name, packages: [{ sku, name, price }] }]\n}")}
+    <b>2. Buat pesanan (membuat QRIS)</b>${pre("POST " + base + "/orders\n{\n  \"sku\": \"p1|0\",\n  \"quantity\": 1,\n  \"customer_name\": \"Budi\",\n  \"customer_phone\": \"0812xxxxxxxx\",\n  \"ref\": \"INV-001\"\n}\n\n201 {\n  id, status: \"pending\", amount, unit_price,\n  qris_url, qris_string, expires_in: 600\n}")}
+    <b>3. Cek status pesanan</b>${pre("GET " + base + "/orders/{id}\n\n200 { id, status: \"pending\" | \"paid\" | \"expired\", ... }")}
+    <b>4. 20 pesanan terakhir</b>${pre("GET " + base + "/orders")}
+    <b>Contoh (JavaScript, di server)</b>${pre("const H = {\n  Authorization: \"Bearer " + SUPABASE_KEY + "\",\n  \"X-API-Key\": process.env.VINZ_KEY,\n  \"Content-Type\": \"application/json\",\n};\nconst base = \"" + base + "\";\n\nconst list = await (await fetch(base + \"/products\", { headers: H })).json();\n\nconst order = await (await fetch(base + \"/orders\", {\n  method: \"POST\", headers: H,\n  body: JSON.stringify({ sku: \"p1|0\", quantity: 1, customer_name: \"Budi\", customer_phone: \"0812xxxxxxxx\" }),\n})).json();\n// tampilkan order.qris_url / order.qris_string ke pembeli, lalu cek status tiap 3 detik")}
+    <b>Catatan</b><p>QR berlaku 10 menit. Kode error: 400 data salah, 401 API key salah atau dicabut, 403 paket belum mendukung API, 404 tidak ditemukan, 429 terlalu banyak permintaan. Nominal selalu dihitung server dari harga reseller, bukan dari permintaanmu.</p>
+    <button class="ghost" type="button" data-mem="backpanel">Kembali</button></div>`);
+}
+$("modal").addEventListener("click", async e => {
+  const b = e.target.closest("[data-jn],[data-mem]"); if(!b) return;
+  if(b.dataset.jn){
+    const a = b.dataset.jn;
+    if(a === "pick") joinConfirm(Number(b.dataset.t));
+    else if(a === "pay") jnPay(b);
+    else if(a === "back") closeAll();
+    else if(a === "acct"){ openMemberPanel(); }
+    else if(a === "store"){ openRsPanel(); }
+  } else {
+    const a = b.dataset.mem;
+    if(a === "upgrade"){ closeAll(); openJoinPage(); }
+    else if(a === "store") openRsPanel();
+    else if(a === "docs") openDocs();
+    else if(a === "backpanel") openMemberPanel();
+    else if(a === "revoke"){ if(!confirm("Cabut API key ini? Web yang memakainya akan berhenti bekerja.")) return; const r = await fnCall("member", {action:"key_revoke", id:Number(b.dataset.id)}); flash(r.ok ? "API key dicabut." : r.error); openMemberPanel(); }
+    else if(a === "newkey"){
+      const r = await fnCall("member", {action:"key_create", label:($("mem_label") || {}).value || ""});
+      if(!r.ok){ flash(r.missing ? "Fitur belum aktif di server." : r.error); return; }
+      LASTKEY = r.key;
+      openModal(`<div class="hd"><h5>API key baru</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox"><div class="bcard"><p style="color:#f59e0b;font-weight:700">Simpan sekarang. Key ini hanya tampil sekali.</p><input class="in" readonly value="${esc(r.key)}" onclick="this.select()"><div class="ordact"><button type="button" data-mem="copykey">Salin key</button><button type="button" data-mem="docs">Dokumentasi</button></div></div><button class="ghost" type="button" data-mem="backpanel">Selesai</button></div>`);
+    }
+    else if(a === "copykey"){ try{ await navigator.clipboard.writeText(LASTKEY); flash("Key disalin."); }catch(_){ flash("Tekan lama kolom key untuk menyalin."); } }
+  }
+});
+$("modal").addEventListener("input", e => {
+  if(e.target.id === "jn_slug"){ const v = e.target.value.trim().toLowerCase(), pv = $("jn_prev"); if(pv) pv.textContent = /^[a-z0-9-]{3,30}$/.test(v) ? "Link tokomu: " + slugLink(v) : ""; }
+});
+
 const LST = {pending:["p","Menunggu bayar"], paid:["s","Masuk saldo"], expired:["x","Kedaluwarsa"], requested:["p","WD diminta"], done:["s","WD selesai"], rejected:["x","WD ditolak"], ok:["m","Koreksi"]};
 function ledRow(l, adm){
   const [c, t] = LST[l.status] || ["m", l.status], neg = l.amount < 0;
@@ -1164,7 +1415,7 @@ const cleanDomain = v => String(v || "").trim().toLowerCase().replace(/^https?:\
 const okDomain = d => /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(d) && d !== MAIN_HOST && !d.endsWith("." + MAIN_HOST);
 async function openRsPanel(){
   if(!RSME) return;
-  RSD = {name:RSME.shop.name || "", wa:RSME.shop.wa || "", about:RSME.shop.about || "", prices:Object.assign({}, RSME.prices), mode:RSME.pay.mode || "web", img:RSME.pay.img || "", key:"", secret:"", hasKey:false};
+  RSD = {name:RSME.shop.name || "", wa:RSME.shop.wa || "", about:RSME.shop.about || "", howUrl:RSME.shop.howUrl || "", logo:RSME.shop.logo || "", open:!!RSME.shop.open, offers:(RSME.shop.offers || []).slice(0, 3), prices:Object.assign({}, RSME.prices), mode:RSME.pay.mode || "web", img:RSME.pay.img || "", key:"", secret:"", hasKey:false};
   const {data} = await SB.from("reseller_secrets").select("api_key").eq("slug", RSME.slug).maybeSingle();
   RSD.hasKey = !!(data && data.api_key);
   await SB.functions.invoke("qris", {body:{action:"settle", reseller:RSME.slug}}).catch(() => {});
@@ -1181,8 +1432,10 @@ async function loadRsBal(){
 }
 function readRs(){
   const g = id => { const el = $(id); return el ? el.value.trim() : null; };
-  const n = g("rs_name"); if(n !== null){ RSD.name = n; RSD.wa = g("rs_wa"); RSD.about = g("rs_about"); }
+  const n = g("rs_name"); if(n !== null){ RSD.name = n; RSD.wa = g("rs_wa"); RSD.about = g("rs_about"); RSD.howUrl = g("rs_how"); }
   document.querySelectorAll("#modal [data-rsp]").forEach(i => { const v = Number(i.value); if(v > 0) RSD.prices[i.dataset.rsp] = v; else delete RSD.prices[i.dataset.rsp]; });
+  const ob = $("rs_open");
+  if(ob){ RSD.open = ob.checked; RSD.offers = [0, 1, 2].map(i => ({name:($("rs_on_" + i).value || "").trim(), price:Math.max(0, Math.round(Number($("rs_op_" + i).value) || 0)), perks:($("rs_od_" + i).value || "").trim()})).filter(o => o.name); }
   const m = g("rs_mode"); if(m) RSD.mode = m;
   const k = g("rs_key"); if(k !== null){ RSD.key = k; RSD.secret = g("rs_secret"); }
 }
@@ -1200,10 +1453,14 @@ function drawRs(){
     <div class="bcard"><label class="lbl">Saldo tersedia</label><div style="font-size:24px;font-weight:800">${rp(d.bal || 0)}</div><small style="color:var(--muted)">Menunggu pembayaran lunas: ${rp(d.pend || 0)}</small>
       <div class="ordact"><button type="button" data-rsact="settle">Perbarui saldo</button><button type="button" data-rsact="wd">Tarik saldo</button><button type="button" data-rsact="ledger">Riwayat saldo</button></div></div>
     <div class="bcard"><label class="lbl">Link tokomu</label><input class="in" readonly value="${esc(rsLink())}" onclick="this.select()"><div class="ordact"><button type="button" data-rsact="copy">Salin link</button><button type="button" data-rsact="orders">Order tokoku</button></div></div>
+    <div class="bcard"><label class="lbl">Logo toko</label><div style="display:flex;gap:12px;align-items:center"><div class="logo" style="width:56px;height:56px;flex:none">${d.logo ? `<img src="${esc(d.logo)}" alt="">` : esc((d.name[0] || "V").toUpperCase())}</div><div style="flex:1"><input class="in" type="file" accept="image/*" data-rs="logo" aria-label="Unggah logo">${d.logo ? '<button type="button" class="btn sec sm" data-rsact="logodel" style="margin-top:6px">Hapus logo</button>' : ""}</div></div><p class="empty-adm">Persegi (PNG/JPG), otomatis dikecilkan. Tekan Simpan toko setelah memilih.</p></div>
+    <div class="bcard"><label class="lbl"><input type="checkbox" id="rs_open"${d.open ? " checked" : ""}> Buka program reseller di tokoku</label>
+      ${[0, 1, 2].map(i => { const o = (d.offers || [])[i] || {}; return `<label class="lbl">Paket reseller ${i + 1}</label><input class="in" id="rs_on_${i}" placeholder="Nama paket" maxlength="30" value="${esc(o.name || "")}"><input class="in" id="rs_op_${i}" type="number" inputmode="numeric" placeholder="Harga (Rp)" value="${o.price || ""}"><input class="in" id="rs_od_${i}" placeholder="Keuntungan singkat" maxlength="80" value="${esc(o.perks || "")}">`; }).join("")}
+      <p class="empty-adm">Calon reseller menghubungi WhatsApp tokomu. Kamu yang mengaktifkan dan mengatur pembayarannya langsung dengan mereka.</p></div>
     <div class="bcard"><label class="lbl">Domain sendiri (opsional)</label>${(d.doms || []).map(x => `<div style="display:flex;gap:8px;align-items:center;margin:6px 0"><b style="flex:1;word-break:break-all">${esc(x.domain)}</b><span class="bdg ${x.status === "active" ? "s" : "p"}">${x.status === "active" ? "Aktif" : "Menunggu DNS"}</span>${x.status === "pending" ? `<button type="button" class="btn sec sm" data-rsact="domchk" data-d="${esc(x.domain)}">Cek</button><button type="button" class="btn sec sm" data-rsact="domdel" data-d="${esc(x.domain)}">Batal</button>` : ""}</div>${domGuide(x)}`).join("")}
       <input class="in" id="rs_dom" placeholder="contoh: pinstore.com"><div class="ordact"><button type="button" data-rsact="domadd">Ajukan domain</button></div>
       <p class="empty-adm">Beli domain di registrar mana saja, ajukan di sini, lalu ikuti petunjuk DNS yang muncul. Setelah DNS benar, domain aktif otomatis (tekan Cek jika belum).</p></div>
-    <div class="bcard"><label class="lbl">Nama toko</label><input class="in" id="rs_name" value="${esc(d.name)}" maxlength="30"><label class="lbl">Nomor WhatsApp</label><input class="in" id="rs_wa" value="${esc(d.wa)}" placeholder="08xxxxxxxxxx"><label class="lbl">Deskripsi singkat</label><input class="in" id="rs_about" value="${esc(d.about)}" maxlength="140"></div>
+    <div class="bcard"><label class="lbl">Nama toko</label><input class="in" id="rs_name" value="${esc(d.name)}" maxlength="30"><label class="lbl">Nomor WhatsApp</label><input class="in" id="rs_wa" value="${esc(d.wa)}" placeholder="08xxxxxxxxxx"><label class="lbl">Deskripsi singkat</label><input class="in" id="rs_about" value="${esc(d.about)}" maxlength="140"><label class="lbl">Link video cara pembelian (TikTok, opsional)</label><input class="in" id="rs_how" value="${esc(d.howUrl || "")}" placeholder="https://www.tiktok.com/@..."></div>
     <div class="bcard"><label class="lbl">Metode pembayaran</label><select class="in" id="rs_mode" data-rs="mode"><option value="web"${d.mode === "web" ? " selected" : ""}>QRIS web Vinzstore (otomatis)</option><option value="qrispw"${d.mode === "qrispw" ? " selected" : ""}>QRIS.PW milikku (otomatis)</option><option value="manual"${d.mode === "manual" ? " selected" : ""}>QRIS milikku (upload gambar, konfirmasi manual)</option></select>${payBox}</div>
     <p class="empty-adm">Kosongkan harga untuk memakai harga normal. Harga tidak boleh di bawah modalmu.</p>${prods}
     <div class="actions"><button class="btn" data-rsact="save">Simpan toko</button></div></div>`);
@@ -1212,13 +1469,15 @@ async function saveRs(){
   readRs(); const d = RSD, disc = RSME.discount;
   if(!d.name){ flash("Nama toko wajib diisi."); return; }
   if(waNum(d.wa).length < 9){ flash("Nomor WhatsApp tidak valid."); return; }
+  if(d.howUrl && !/^https:\/\//i.test(d.howUrl)){ flash("Link video harus diawali https://"); return; }
   for(const p of RAW.products) for(let i = 0; i < p.packages.length; i++){ const v = d.prices[p.id + "|" + i], cost = Math.round(p.packages[i][1] * (1 - disc/100)); if(v && v < cost){ flash("Harga " + p.name + " (" + p.packages[i][0] + ") minimal " + rp(cost)); return; } }
   if(d.mode === "manual" && !d.img){ flash("Upload gambar QRIS dulu."); return; }
+  if(d.open && !(d.offers || []).length){ flash("Isi minimal 1 paket reseller, atau matikan program reseller."); return; }
   if(d.mode === "qrispw"){
     if(d.key && d.secret){ const {error} = await SB.from("reseller_secrets").upsert({slug:RSME.slug, api_key:d.key, api_secret:d.secret}); if(error){ flash("Gagal simpan kunci: " + error.message); return; } d.hasKey = true; d.key = d.secret = ""; }
     else if(!d.hasKey){ flash("Isi API Key dan API Secret QRIS.PW."); return; }
   }
-  const row = {shop:{name:d.name, wa:waNum(d.wa), about:d.about}, prices:d.prices, pay:{mode:d.mode, img:d.mode === "manual" ? d.img : ""}, updated_at:new Date().toISOString()};
+  const row = {shop:{name:d.name, wa:waNum(d.wa), about:d.about, howUrl:d.howUrl || "", logo:d.logo || "", open:!!d.open, offers:d.offers || []}, prices:d.prices, pay:{mode:d.mode, img:d.mode === "manual" ? d.img : ""}, updated_at:new Date().toISOString()};
   const {error} = await SB.from("reseller_shops").update(row).eq("slug", RSME.slug);
   if(error){ flash("Gagal menyimpan: " + error.message); return; }
   Object.assign(RSME, {shop:row.shop, prices:row.prices, pay:row.pay}); flash("Toko tersimpan."); drawRs();
@@ -1277,12 +1536,14 @@ $("modal").addEventListener("click", async e => {
     if(!r.ok){ flash(r.error); return; }
     readRs(); RSD.doms = (await SB.from("reseller_domains").select("domain,status,cf_info").eq("slug", RSME.slug)).data || []; drawRs();
   }
+  else if(a === "logodel"){ readRs(); RSD.logo = ""; drawRs(); }
   else if(a === "back") drawRs();
 });
 $("modal").addEventListener("change", async e => {
   const t = e.target; if(!RSD || !t) return;
   if(t.dataset && t.dataset.rs === "mode"){ readRs(); RSD.mode = t.value; drawRs(); }
   else if(t.dataset && t.dataset.rs === "qrisimg" && t.files[0]){ readRs(); RSD.img = await readImage(t.files[0], 900); drawRs(); }
+  else if(t.dataset && t.dataset.rs === "logo" && t.files[0]){ readRs(); RSD.logo = await readImage(t.files[0], 160); drawRs(); }
 });
 
 /* --- admin: kelola reseller --- */
@@ -1306,6 +1567,49 @@ async function loadAdminResellers(){
   const ML = {web:"QRIS web", qrispw:"QRIS.PW sendiri", manual:"QRIS manual"};
   el.innerHTML = ARS.length ? ARS.map(r => `<div class="hist"><b>${esc(r.shop.name || r.slug)}</b>${esc(r.email)}<br><small>${esc(slugLink(r.slug))}<br>Pembayaran: ${esc(ML[r.pay.mode] || "QRIS web")}<br>Saldo reseller: <b>${rp((bm[r.slug] || {}).balance || 0)}</b> · menunggu bayar ${rp((bm[r.slug] || {}).pending || 0)}${Number((bm[r.slug] || {}).wd_pending) ? ' · <b style="color:#f59e0b">' + bm[r.slug].wd_pending + ' penarikan diminta</b>' : ""}</small>
     <div class="ordact"><input class="in" type="number" style="width:90px;flex:none" data-disc="${esc(r.slug)}" value="${Number(r.discount) || 0}" min="0" max="90" aria-label="Diskon modal persen"><button type="button" data-act="rsLed" data-slug="${esc(r.slug)}">Mutasi saldo</button><button type="button" data-act="rsDom" data-slug="${esc(r.slug)}">Domain</button><button type="button" data-act="rsDisc" data-slug="${esc(r.slug)}">Simpan diskon %</button><button type="button" data-act="rsDel" data-slug="${esc(r.slug)}">Hapus</button></div></div>`).join("") : '<p class="empty-adm">Belum ada reseller.</p>';
+}
+/* --- admin: paket & member reseller --- */
+let ADMPLANS = [], AAPI = [];
+function admMember(){ setTimeout(loadAdminMembers, 0); return '<div id="memBody"><p class="empty-adm">Memuat...</p></div>'; }
+async function loadAdminMembers(){
+  const el = $("memBody"); if(!el) return;
+  if(!SB){ el.innerHTML = '<p class="empty-adm">Butuh Supabase aktif.</p>'; return; }
+  const [pl, mm, sg] = await Promise.all([SB.from("reseller_plans").select("*").order("tier"), SB.from("reseller_members").select("*").order("created_at", {ascending:false}), SB.from("reseller_signups").select("*").order("created_at", {ascending:false}).limit(15)]);
+  if(pl.error){ el.innerHTML = '<p class="empty-adm">Gagal memuat: ' + esc(pl.error.message) + '. Sudah menjalankan SQL paket reseller?</p>'; return; }
+  ADMPLANS = pl.data || [];
+  const SB_ = {pending:["p","Menunggu bayar"], paid:["s","Lunas"], expired:["x","Kedaluwarsa"]};
+  el.innerHTML = `<div class="bcard" style="margin-top:16px"><b>Paket reseller</b><p class="empty-adm">Harga, diskon, dan fitur tiap paket. Member lama tetap memakai diskon saat mereka bergabung.</p>
+    ${ADMPLANS.map(p => `<div class="bcard" data-tier="${p.tier}"><b>Paket ${p.tier}</b>
+      <label class="lbl">Nama</label><input class="in" data-pf="name" value="${esc(p.name)}" maxlength="30">
+      <label class="lbl">Harga (Rp)</label><input class="in" type="number" inputmode="numeric" data-pf="price" value="${p.price}">
+      <label class="lbl">Diskon harga reseller (%)</label><input class="in" type="number" inputmode="decimal" data-pf="discount" value="${Number(p.discount)}" min="0" max="90">
+      <label class="lbl"><input type="checkbox" data-pf="api"${p.api ? " checked" : ""}> API key + dokumentasi</label>
+      <label class="lbl"><input type="checkbox" data-pf="store"${p.store ? " checked" : ""}> Web toko sendiri (subdomain)</label>
+      <label class="lbl"><input type="checkbox" data-pf="active"${p.active ? " checked" : ""}> Dijual</label></div>`).join("")}
+    <div class="actions"><button class="btn" data-act="plSave">Simpan paket</button></div></div>
+    <div class="bcard"><b>Tambah member manual</b>
+      <label class="lbl">Email akun (harus sudah daftar di web)</label><input class="in" id="mm_email" type="email" placeholder="email@gmail.com">
+      <label class="lbl">Paket</label><select class="in" id="mm_tier">${ADMPLANS.map(p => `<option value="${p.tier}">${esc(p.name)} (${rp(p.price)})</option>`).join("")}</select>
+      <label class="lbl">Nama link toko (hanya untuk paket yang dapat web)</label><input class="in" id="mm_slug" placeholder="pinstore">
+      <div class="actions"><button class="btn" data-act="memAdd">Tambah member</button></div></div>
+    <div class="ordtools"><button class="btn sec sm" data-act="memSettle">Cek pembayaran gabung</button></div>
+    <b>Member (${(mm.data || []).length})</b>
+    ${(mm.data || []).map(m => `<div class="hist"><b>${esc(m.email)}</b>${esc((ADMPLANS.find(p => p.tier === m.tier) || {}).name || "Paket " + m.tier)} · diskon ${Number(m.discount)}% · ${m.source === "manual" ? "manual" : "otomatis"}${m.slug ? "<br><small>Toko: " + esc(slugLink(m.slug)) + "</small>" : ""}${m.api ? "<br><small>API aktif</small>" : ""}
+      <div class="ordact"><button type="button" data-act="memDel" data-email="${esc(m.email)}">Hapus member</button></div></div>`).join("") || '<p class="empty-adm">Belum ada member.</p>'}
+    <b>Pendaftaran terbaru</b>
+    ${(sg.data || []).map(x => { const [c, l] = SB_[x.status] || ["m", x.status]; return `<div class="hist"><b>${esc(x.email)}</b>Paket ${x.tier} · ${rp(x.amount)}${x.slug ? " · " + esc(x.slug) : ""}<br><small>${esc(new Date(x.created_at).toLocaleString("id-ID"))} · WA ${esc(x.phone || "-")}</small><br><span class="bdg ${c}">${l}</span></div>`; }).join("") || '<p class="empty-adm">Belum ada.</p>'}`;
+}
+function admApiOrders(){ setTimeout(loadApiOrders, 0); return '<div class="ordtools"><button class="btn sec sm" data-act="apiReload">Muat ulang</button></div><div id="apiRows"><p class="empty-adm">Memuat...</p></div>'; }
+async function loadApiOrders(){
+  const el = $("apiRows"); if(!el) return;
+  if(!SB){ el.innerHTML = '<p class="empty-adm">Butuh Supabase aktif.</p>'; return; }
+  const {data, error} = await SB.from("api_orders").select("*").order("created_at", {ascending:false}).limit(60);
+  if(error){ el.innerHTML = '<p class="empty-adm">Gagal memuat: ' + esc(error.message) + '</p>'; return; }
+  AAPI = data || [];
+  const M = {pending:"p", paid:"s", expired:"x"};
+  el.innerHTML = AAPI.length ? AAPI.map(o => { const [c, l] = BADGE[M[o.status] || "m"];
+    return `<div class="hist"><b>${esc(o.product || o.sku)}</b>${esc(o.package || "")} × ${o.qty} — ${rp(o.amount)}<br><small>Reseller: ${esc(o.email)}<br>Pelanggan: ${esc(o.customer_name || "-")} · ${esc(o.customer_phone || "-")}${o.ref ? "<br>Ref: " + esc(o.ref) : ""}<br>${esc(new Date(o.created_at).toLocaleString("id-ID"))}</small><br><span class="bdg ${c}">${l}</span>
+      <div class="ordact">${o.status === "pending" ? `<button type="button" data-act="apiCheck" data-id="${esc(o.id)}">Cek status</button>` : ""}${waNum(o.customer_phone) ? `<a href="https://wa.me/${waNum(o.customer_phone)}" target="_blank" rel="noopener">Chat pelanggan</a>` : ""}</div></div>`; }).join("") : '<p class="empty-adm">Belum ada pesanan API.</p>';
 }
 let ADMDOM = "";
 async function openAdmDomains(slug){
@@ -1352,8 +1656,9 @@ function admShop(){
   const sh = DB.shop, f = (k, l, ph) => `<label class="lbl">${l}</label><input class="in" id="sh_${k}" value="${esc(sh[k])}" placeholder="${ph || ""}">`;
   const t = (k, l) => `<label class="lbl">${l}</label><textarea class="in" id="sh_${k}" rows="6">${esc(sh[k])}</textarea>`;
   const warn = (waNum(sh.wa) === "6281234567890") ? `<p style="color:#f59e0b;font-weight:700">Nomor WhatsApp masih contoh. Ganti dengan nomor adminmu supaya pembeli bisa menghubungi.</p>` : "";
-  return `<div class="bcard" style="margin-top:16px">${warn}${f("brandA","Nama toko (bagian 1)")}${f("brandB","Nama toko (bagian 2, berwarna)")}${t("about","Deskripsi toko (footer)")}
-    ${f("wa","Nomor WhatsApp admin","08xxxxxxxxxx atau 628xxxxxxxxxx")}${f("telegram","Link Telegram","https://t.me/...")}${f("channel","Link saluran","https://t.me/...")}
+  const logoBox = `<label class="lbl">Logo toko</label><div style="display:flex;gap:12px;align-items:center"><div class="logo" style="width:56px;height:56px;flex:none">${sh.logo ? `<img src="${esc(sh.logo)}" alt="">` : esc((sh.brandA[0] || "V").toUpperCase())}</div><div style="flex:1"><input class="in" type="file" accept="image/*" data-file="shoplogo" aria-label="Unggah logo toko">${sh.logo ? '<button type="button" class="btn sec sm" data-act="shopLogoDel" style="margin-top:6px">Hapus logo</button>' : ""}</div></div><p class="empty-adm">Tampil di header dan ikon tab. Pakai gambar persegi (PNG/JPG); otomatis dikecilkan dan langsung tersimpan.</p>`;
+  return `<div class="bcard" style="margin-top:16px">${warn}${logoBox}${f("brandA","Nama toko (bagian 1)")}${f("brandB","Nama toko (bagian 2, berwarna)")}${t("about","Deskripsi toko (footer)")}
+    ${f("wa","Nomor WhatsApp admin","08xxxxxxxxxx atau 628xxxxxxxxxx")}${f("telegram","Link Telegram","https://t.me/...")}${f("channel","Link saluran","https://t.me/...")}${f("howUrl","Link video Cara Pembelian (TikTok, opsional)","https://www.tiktok.com/@akunmu/video/...")}
     <p class="empty-adm" style="padding:4px 0">Link Telegram/saluran yang masih berisi "username" tidak ditampilkan di situs.</p>
     ${t("how","Isi halaman Cara Beli")}${t("faq","Isi halaman Bantuan / FAQ")}${t("terms","Isi Syarat Ketentuan")}${t("privacy","Isi Kebijakan Privasi")}
     <div class="actions"><button class="btn" data-act="saveShop">Simpan pengaturan toko</button></div></div>`;
@@ -1499,13 +1804,47 @@ $("admBody").addEventListener("click", async e => {
       save("vs_cache", DB); save("vs_ver2", String(new Date(ts).getTime())); flash("Data terkirim ke server: " + DB.products.length + " produk.");
     });
   }
+  else if(act === "shopLogoDel"){ DB.shop.logo = ""; persist(); applyShop(); renderAdmin(); flash("Logo dihapus."); }
   else if(act === "saveShop"){
     const g = k => $("sh_" + k).value.trim(), wa = waNum(g("wa"));
     if(wa.length < 9){ flash("Nomor WhatsApp tidak valid."); return; }
     if(!g("brandA")){ flash("Nama toko tidak boleh kosong."); return; }
-    ["brandA","brandB","about","telegram","channel","how","faq","terms","privacy"].forEach(k => DB.shop[k] = g(k) || DEFAULT_SHOP[k]);
+    if(g("howUrl") && !/^https:\/\//i.test(g("howUrl"))){ flash("Link video harus diawali https://"); return; }
+  ["brandA","brandB","about","telegram","channel","howUrl","how","faq","terms","privacy"].forEach(k => DB.shop[k] = g(k) || DEFAULT_SHOP[k]);
     DB.shop.wa = wa; persist(); applyShop(); renderAdmin(); flash("Pengaturan toko tersimpan.");
   }
+  else if(act === "plSave"){
+    const cards = [...document.querySelectorAll("#memBody [data-tier]")]; let bad = "";
+    const rows = cards.map(c => { const g = k => c.querySelector('[data-pf="' + k + '"]'); const price = Math.round(Number(g("price").value)), disc = Number(g("discount").value);
+      if(!(price >= 1000)) bad = "Harga minimal Rp1.000."; if(!(disc >= 0 && disc <= 90)) bad = "Diskon 0 sampai 90.";
+      return {tier:Number(c.dataset.tier), name:g("name").value.trim() || "Paket", price, discount:disc, api:g("api").checked, store:g("store").checked, active:g("active").checked}; });
+    if(bad){ flash(bad); return; }
+    Promise.all(rows.map(r => SB.from("reseller_plans").update({name:r.name, price:r.price, discount:r.discount, api:r.api, store:r.store, active:r.active}).eq("tier", r.tier))).then(rs => { const er = rs.find(x => x.error); flash(er ? "Gagal: " + er.error.message : "Paket tersimpan."); loadPlans(); });
+  }
+  else if(act === "memAdd"){
+    const email = $("mm_email").value.trim().toLowerCase(), tier = Number($("mm_tier").value), slug = $("mm_slug").value.trim().toLowerCase(), pl = ADMPLANS.find(p => p.tier === tier);
+    if(!pl) return;
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ flash("Email tidak valid."); return; }
+    if(pl.store && !/^[a-z0-9-]{3,30}$/.test(slug)){ flash("Isi nama link toko (3-30 karakter)."); return; }
+    (async () => {
+      const m = await SB.from("reseller_members").upsert({email, tier, discount:pl.discount, api:pl.api, store:pl.store, slug:pl.store ? slug : null, source:"manual"}, {onConflict:"email"});
+      if(m.error){ flash("Gagal: " + m.error.message); return; }
+      if(pl.store){
+        const t = await SB.from("reseller_terms").upsert({slug, email, discount:pl.discount}, {onConflict:"slug"});
+        if(t.error){ flash("Gagal membuat toko: " + t.error.message); return; }
+        await SB.from("reseller_shops").upsert({slug, shop:{name:slug}}, {onConflict:"slug", ignoreDuplicates:true});
+      }
+      flash("Member ditambahkan."); loadAdminMembers();
+    })();
+  }
+  else if(act === "memDel"){
+    if(!confirm("Hapus member ini? Diskon dan API key-nya dicabut. Toko (jika ada) tidak ikut dihapus.")) return;
+    const em = b.dataset.email;
+    SB.from("reseller_api_keys").update({revoked:true}).eq("email", em).then(() => SB.from("reseller_members").delete().eq("email", em)).then(({error}) => { flash(error ? "Gagal: " + error.message : "Member dihapus."); loadAdminMembers(); });
+  }
+  else if(act === "memSettle"){ b.disabled = true; fnCall("member", {action:"settle"}).then(r => { b.disabled = false; flash(r.ok ? "Dicek " + r.checked + " pendaftaran, " + r.paid + " lunas." : r.error); loadAdminMembers(); }); }
+  else if(act === "apiReload"){ loadApiOrders(); }
+  else if(act === "apiCheck"){ b.disabled = true; fnCall("member", {action:"order_check", id:b.dataset.id}).then(r => { flash(r.ok ? "Status: " + r.status : r.error); loadApiOrders(); }); }
   else if(act === "rsAdd"){
     const email = $("rs_email").value.trim().toLowerCase(), slug = $("rs_slug").value.trim().toLowerCase(), disc = Number($("rs_disc").value) || 0;
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ flash("Email tidak valid."); return; }
@@ -1569,6 +1908,7 @@ $("admBody").addEventListener("change", async e => {
     if(f.dataset.file === "prod"){ readProdForm(); A.edit.img = await readImage(file, 640); renderAdmin(); }
     else if(f.dataset.file === "blogos"){ readBanners(); const bi = +f.dataset.i; for(const fl of files) A.banners[bi].logos.push(await readImage(fl, 320)); renderAdmin(); }
     else if(f.dataset.file === "strip"){ readStrips(); const k = f.dataset.k; for(const fl of files) A.strips[k].items.push({img: await readImage(fl, k === "games" ? 480 : 320)}); renderAdmin(); }
+    else if(f.dataset.file === "shoplogo"){ DB.shop.logo = await readImage(file, 160); persist(); applyShop(); renderAdmin(); flash("Logo tersimpan."); }
     else if(f.dataset.file === "banner"){ readBanners(); A.banners[+f.dataset.i].img = await readImage(file, 1200); renderAdmin(); }
     else if(f.dataset.file === "import"){
       const txt = (await file.text()).replace(/^[^{]*/, "").replace(/;\s*$/, "");
@@ -1592,7 +1932,7 @@ if(SB){ const warm = () => SB.functions.invoke("qris", {body:{action:"ping"}}).c
   const {data:s} = await SB.auth.getSession();
   if(s.session){ ME = mapUser(s.session.user); await loadOrders(); refreshUser(); }
   SB.auth.onAuthStateChange(ev => { if(ev === "PASSWORD_RECOVERY") openModal(`<div class="hd"><h5>Password baru</h5><button class="x" data-close aria-label="Tutup">✕</button></div><input class="in" id="np_pw" type="password" placeholder="Password baru (minimal 6 karakter)" autocomplete="new-password"><div class="err" id="np_err" role="alert"></div><button class="btn" id="np_save" type="button" style="width:100%;margin-top:8px">Simpan password</button>`); });
-  loadMyReseller();
+  loadMyReseller(); loadMyMember(); loadPlans();
   await Promise.all([syncRemote(), rsP]);
   document.addEventListener("visibilitychange", () => { if(!document.hidden) syncRemote(); });
   setInterval(() => { if(!document.hidden) syncRemote(); }, 30000);
