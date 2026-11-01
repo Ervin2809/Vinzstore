@@ -158,7 +158,7 @@ html[data-theme="light"] .overlay{background:rgba(20,27,52,.35)}
 .qrsk{width:min(100%,270px);aspect-ratio:1;margin:14px auto;border-radius:14px;background:linear-gradient(90deg,var(--surface-2),var(--line),var(--surface-2));background-size:200% 100%;animation:sk 1.1s linear infinite}
 @keyframes sk{to{background-position:-200% 0}}
 .bdg{display:inline-block;font-size:11px;font-weight:800;border-radius:99px;padding:3px 9px;margin-top:6px}
-.bdg.p{background:#f59e0b22;color:#f59e0b}.bdg.s{background:#22c55e22;color:#22c55e}.bdg.x{background:#ef444422;color:#ef4444}.bdg.m{background:var(--surface);color:var(--muted)}
+.bdg.p{background:#f59e0b22;color:#f59e0b}.bdg.s{background:#22c55e22;color:#22c55e}.bdg.dead{background:#ef444422;color:#ef4444}.bdg.m{background:var(--surface);color:var(--muted)}
 .hist[data-oid]{cursor:pointer}
 /* footer */
 footer{margin-top:40px;padding:28px 0 100px}
@@ -219,6 +219,7 @@ html[data-theme="light"] .foot .brand b{color:#bbf7d0}
 
 /* product page */
 .pcard{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:16px}
+.shbtn{margin-top:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:99px;padding:6px 12px;font-size:12px;font-weight:700}
 .pcard .tile{width:68px;flex:none}
 .pcard .plat{display:none}
 .pcard .box{font-size:9px}
@@ -430,9 +431,7 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
       </div>
       <div class="panel">
         <h4><em>3</em>Metode pembayaran</h4>
-        <button class="pay" data-m="saldo" disabled><span class="r"></span><span><b>Saldo</b><small>Saldo tidak cukup</small></span></button>
         <button class="pay" data-m="QRIS" aria-pressed="true"><span class="r"></span><span><b>QRIS</b><small>Otomatis, langsung terdeteksi</small></span></button>
-        <button class="pay" data-m="Transfer / e-wallet" aria-pressed="false"><span class="r"></span><span><b>Transfer / e-wallet</b><small>Dikonfirmasi admin</small></span></button>
         <div class="err" id="err" role="alert"></div>
       </div>
     </div>
@@ -478,7 +477,6 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
   <div class="hd"><h5>MENU</h5><button class="x" id="closeD" aria-label="Tutup">✕</button></div>
   <div id="drawerBody"></div>
   <nav class="menu">
-    <a id="mJoin" href="#" role="button">Jadi Reseller</a>
     <a id="mMember" href="#" role="button" style="display:none">Akun Reseller</a>
     <a id="mReseller" href="#" role="button" style="display:none">Panel Reseller</a>
     <a id="mTheme" href="#" role="button">Ganti tema</a>
@@ -563,6 +561,8 @@ const DEFAULT_SHOP = {
   privacy: "Data yang kami simpan: nama, email akun, nomor WhatsApp, dan riwayat pesananmu.\nData dipakai hanya untuk memproses pesanan dan menghubungimu terkait pesanan.\nKami tidak menjual datamu ke pihak lain.\nPembayaran QRIS diproses oleh penyedia pembayaran; kami tidak menyimpan data kartu atau rekening.\nUntuk menghapus akun dan data, hubungi admin lewat WhatsApp."
 };
 const DEFAULT_DB = {products: PRODUCTS, banners: CONFIG.banners, ticker: CONFIG.ticker};
+function slugify(n){ return String(n || "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60).replace(/-+$/, "") || "produk"; }
+function ensureSlugs(list){ const used = new Set(); list.forEach(p => { const base = p.slug ? slugify(p.slug) : slugify(p.name); let s = base, n = 2; while(used.has(s)) s = base + "-" + n++; used.add(s); p.slug = s; }); return list; }
 function normDB(d){
   d = d || {};
   const t = Object.assign({on:true, speed:5, items:[]}, d.ticker || {});
@@ -571,8 +571,9 @@ function normDB(d){
     cat: p.cat || "Lainnya", platform: p.platform || "ANDROID", hue: p.hue || 225, img: p.img || "", sold: p.sold || 0,
     desc: p.desc || "", how: Array.isArray(p.how) ? p.how : [],
     packages: (Array.isArray(p.packages) ? p.packages : []).filter(k => k && k[0] && k[1] > 0),
-    popular: p.popular || 0
+    popular: p.popular || 0, slug: p.slug || ""
   })).filter(p => p.packages.length);
+  ensureSlugs(products);
   const banners = (Array.isArray(d.banners) ? d.banners : []).map(b => ({
     title: b.title || "", text: b.text || "", cta: b.cta || "", href: b.href || "#list", cls: b.cls || "s0", img: b.img || "",
     logos: (Array.isArray(b.logos) ? b.logos : []).filter(x => typeof x === "string" && x)
@@ -583,7 +584,7 @@ function normDB(d){
   return {products, banners, ticker: t, shop, strips: {games: mk("games", "Game Populer"), pay: mk("pay", "Metode Pembayaran")}};
 }
 let DB = normDB((SB ? load("vs_cache", null) : load(KEY.db, null)) || PUBLISHED_DATA || clone(DEFAULT_DB));
-let RAW = DB, RS_ACTIVE = null, RSME = null, RSD = null, MEMBER = null, PLANS = [];
+let RAW = DB, RS_ACTIVE = null, RSME = null, RSD = null, MEMBER = null, PLANS = [], RSBAL = 0;
 const MAIN_HOST = "vinzprostore.web.id";   // domain utama tokomu
 const SUBDOMAINS_ON = true;                // wildcard DNS + Worker reseller-proxy sudah aktif
 const HOST = location.hostname.toLowerCase();
@@ -617,7 +618,7 @@ async function loadResellerShop(){
 function applyRsUi(){
   const sm = document.querySelector('.pay[data-m="QRIS"] small');
   if(sm && RS_ACTIVE && RS_ACTIVE.pay.mode === "manual") sm.textContent = "Scan QRIS toko, lalu konfirmasi ke penjual";
-  if(RS_ACTIVE){ const sh = RS_ACTIVE.shop || {}, open = !!(sh.open && (sh.offers || []).length); ["mJoin","reseller"].forEach(i => { const el = $(i); if(el) el.style.display = open ? "" : "none"; }); }
+  if(RS_ACTIVE){ const sh = RS_ACTIVE.shop || {}, open = !!(sh.open && (sh.offers || []).length); ["reseller"].forEach(i => { const el = $(i); if(el) el.style.display = open ? "" : "none"; }); }
 }
 // data reseller yang sudah disisipkan Worker: tampil langsung tanpa menunggu jaringan
 if(window.__RS && window.__RS.slug){
@@ -696,7 +697,7 @@ const waNum = v => { v = String(v || "").replace(/\D/g, ""); return v.startsWith
 function applyShop(){
   const sh = DB.shop;
   Object.assign(CONFIG, {brandA: sh.brandA, brandB: sh.brandB, about: sh.about, wa: waNum(sh.wa), telegram: sh.telegram, channel: sh.channel});
-  document.title = CONFIG.brandA + " " + CONFIG.brandB + " — Digital Store Otomatis 24 Jam";
+  { const pv = ($("productView") && !$("productView").hidden && S.pid) ? prod() : null; document.title = pv ? pv.name + " — " + brandName() : brandName() + " — Digital Store Otomatis 24 Jam"; }
   const brandHTML = `${esc(CONFIG.brandA)} <b>${esc(CONFIG.brandB)}</b>`;
   ["brand","brand2","brandP","brandA","brandJ"].forEach(i => $(i).innerHTML = brandHTML);
   $("brand3").textContent = CONFIG.brandA + CONFIG.brandB;
@@ -806,7 +807,7 @@ function renderDrawer(){
   const u = me();
   $("drawerBody").innerHTML = `<div class="user">
     <div class="row"><div class="av">${esc((u ? u.name : "T")[0].toUpperCase())}</div>
-      <div><b>${esc(u ? u.name : "Tamu")}</b><small>${u ? esc(u.email) : "Belum masuk"}</small>${isAdmin() ? '<span class="role">Admin</span>' : u ? "<small>Member</small>" : ""}${u ? '<span class="sal">Saldo: Rp 0</span>' : ""}</div></div>
+      <div><b>${esc(u ? u.name : "Tamu")}</b><small>${u ? esc(u.email) : "Belum masuk"}</small>${isAdmin() ? '<span class="role">Admin</span>' : u ? "<small>Member</small>" : ""}${u && RSME && (RSME.pay.mode || "web") === "web" ? '<span class="sal">Saldo: ' + rp(RSBAL) + '</span>' : ""}</div></div>
     ${u
       ? `<button class="ghost" id="hist">Riwayat Order</button>${isAdmin() ? '<button class="btn" id="goAdmin">Buka Panel Admin</button>' : ""}<button class="ghost" id="logout">Keluar</button>`
       : `<button class="btn" id="dLogin">Masuk</button><button class="ghost" id="dReg">Daftar akun</button>`}
@@ -840,7 +841,7 @@ $("drawer").addEventListener("click", e => {
 const PAYST = {};
 const expOf = o => o.exp || ((parseInt(String(o.id).slice(4)) || 0) + 10*60*1000);
 const ordState = o => !o.trx ? "m" : (PAYST[o.id] === "paid" || o.status === "paid") ? "s" : (PAYST[o.id] === "dead" || Date.now() > expOf(o)) ? "x" : "p";
-const BADGE = {m:["m","Manual"], s:["s","Sukses"], x:["x","Kedaluwarsa"], p:["p","Menunggu bayar"]};
+const BADGE = {m:["m","Manual"], s:["s","Sukses"], x:["dead","Kedaluwarsa"], p:["p","Menunggu bayar"]};
 async function checkTrx(o){
   if(!SB || !o.trx) return null;
   const {data} = await SB.functions.invoke("qris", {body:{action:"check", transaction_id:o.trx, reseller:o.reseller || ""}});
@@ -973,17 +974,46 @@ function logout(){
   flash("Kamu sudah keluar.");
 }
 
+/* ---------- link produk: setiap produk punya alamat sendiri ---------- */
+const PRODUCT_PATHS = true;   // true: /produk/nama-produk (butuh route Worker) | false: /?produk=nama-produk
+let ROUTING = false, PENDING_SLUG = "";
+function brandName(){ return [CONFIG.brandA, CONFIG.brandB].filter(Boolean).join(" "); }
+function urlFor(p){
+  const q = new URLSearchParams(location.search); q.delete("produk");
+  if(p && !PRODUCT_PATHS) q.set("produk", p.slug);
+  const qs = q.toString();
+  return (p && PRODUCT_PATHS ? "/produk/" + p.slug : "/") + (qs ? "?" + qs : "");
+}
+function pushUrl(p){ if(ROUTING || !/^https?:$/.test(location.protocol)) return; try{ const u = urlFor(p); if(location.pathname + location.search !== u) history.pushState({}, "", u); }catch(_){} }
+function slugFromUrl(){ const m = location.pathname.match(/^\/produk\/([a-z0-9-]+)\/?$/); return m ? m[1] : (new URLSearchParams(location.search).get("produk") || "").toLowerCase().replace(/[^a-z0-9-]/g, ""); }
+function routeFromUrl(initial){
+  const sl = slugFromUrl(); ROUTING = true;
+  try{
+    if(sl){ const p = DB.products.find(x => x.slug === sl); if(p){ openProduct(p.id); return true; } if(initial) return false; showHome(); return true; }
+    if(!$("productView").hidden) showHome();
+    return true;
+  } finally { ROUTING = false; }
+}
+window.addEventListener("popstate", () => routeFromUrl(false));
+document.addEventListener("click", async e => {
+  if(!e.target.closest("[data-share]")) return;
+  const p = prod(); if(!p) return; const url = location.origin + urlFor(p);
+  try{ if(navigator.share){ await navigator.share({title:p.name, url}); return; } }catch(_){ return; }
+  try{ await navigator.clipboard.writeText(url); flash("Link produk disalin."); }catch(_){ prompt("Salin link produk:", url); }
+});
+
 /* ---------- views ---------- */
-function showHome(){ $("homeView").hidden = false; $("productView").hidden = true; $("adminView").hidden = true; $("joinView").hidden = true; window.scrollTo(0,0); }
+function showHome(){ pushUrl(null); document.title = brandName() + " — Digital Store Otomatis 24 Jam"; $("homeView").hidden = false; $("productView").hidden = true; $("adminView").hidden = true; $("joinView").hidden = true; window.scrollTo(0,0); }
 function fillBuyer(){ if(me() && !$("buyer").value.trim()) $("buyer").value = me().name; $("who").textContent = "@" + curName(); }
 function openProduct(id){
   S.pid = id; S.pkg = 0; S.qty = 1; S.tab = "buy"; $("err").textContent = "";
   const p = prod();
-  $("pcard").innerHTML = `${tile(p)}<div><h2>${esc(p.name)}</h2><span class="badge">${esc(p.platform)}</span></div>`;
+  $("pcard").innerHTML = `${tile(p)}<div><h2>${esc(p.name)}</h2><span class="badge">${esc(p.platform)}</span><br><button type="button" class="shbtn" data-share="1">Bagikan link</button></div>`;
   $("tDesc").innerHTML = `<p>${esc(p.desc || "Belum ada deskripsi.")}</p>`;
   $("tHow").innerHTML = p.how.length ? `<ol>${p.how.map(h => `<li>${esc(h)}</li>`).join("")}</ol>` : `<p>Belum ada panduan.</p>`;
   $("homeView").hidden = true; $("adminView").hidden = true; $("joinView").hidden = true; $("productView").hidden = false; window.scrollTo(0,0);
   fillBuyer(); renderPkgs(); setTab("buy"); updTotal();
+  pushUrl(p); document.title = p.name + " — " + brandName();
 }
 function renderPkgs(){
   $("pk").innerHTML = prod().packages.map((k,i) =>
@@ -1050,17 +1080,7 @@ $("buy").onclick = async () => {
     addOrder(order); $("who").textContent = "@" + curName();
     showPay(order); return;
   }
-  addOrder(order);
-  $("who").textContent = "@" + curName();
-  const msg = ["Halo admin, saya sudah order:", "Order ID: " + order.id, "Produk: " + p.name + " - " + pk[0],
-               "Jumlah: " + order.qty, "Total: " + rp(total), "Pembayaran: " + order.pay, "Nama: " + name].join("\n");
-  openModal(`<div class="done"><div class="ok">Pesanan dibuat</div><small style="color:var(--muted)">Selesaikan pembayaran, lalu kirim invoice ke admin.</small>
-    <div class="sum"><div><span>Order ID</span><b>${esc(order.id)}</b></div><div><span>Produk</span><b>${esc(p.name)}</b></div>
-    <div><span>Paket</span><b>${esc(pk[0])} × ${order.qty}</b></div><div><span>Pembayaran</span><b>${esc(order.pay)}</b></div>
-    <div><span>Total bayar</span><b>${rp(total)}</b></div></div>
-    <div class="qrbox">Tempatkan gambar QRIS atau nomor rekening/e-wallet tokomu di sini.</div>
-    <a class="wa" href="${waLink(msg)}" target="_blank" rel="noopener" style="text-decoration:none;display:block;text-align:center">Kirim invoice ke WhatsApp</a>
-    <button class="ghost" data-close>Selesai</button></div>`);
+  $("err").textContent = "Pembayaran QRIS belum aktif. Hubungi admin.";
 };
 
 /* =====================================================
@@ -1104,6 +1124,7 @@ function admProductForm(){
     <button type="button" class="x" data-act="rmPk" data-i="${i}" aria-label="Hapus paket">✕</button></div>`).join("");
   return `<div class="panel"><h4>${p.isNew ? "Tambah produk" : "Ubah produk"}</h4>
     <label class="lbl" for="f_name">Nama produk</label><input class="in" id="f_name" value="${esc(p.name)}" maxlength="80">
+    <label class="lbl" for="f_slug">Link produk (otomatis dari nama bila dikosongkan)</label><input class="in" id="f_slug" value="${esc(p.slug || "")}" maxlength="60" placeholder="contoh: hg-cheat-ff" autocapitalize="none"><small class="empty-adm">Alamat: ${esc(location.origin)}/produk/<b>${esc(p.slug || slugify(p.name))}</b></small>
     <div class="row2">
       <div><label class="lbl" for="f_cat">Kategori</label><input class="in" id="f_cat" list="catList" value="${esc(p.cat)}" maxlength="30"><datalist id="catList">${catOpts}</datalist></div>
       <div><label class="lbl" for="f_plat">Platform</label><input class="in" id="f_plat" list="platList" value="${esc(p.platform)}" maxlength="12"><datalist id="platList"><option value="ANDROID"><option value="iOS"><option value="PC"><option value="ALL"></datalist></div>
@@ -1125,7 +1146,7 @@ function admProductForm(){
 }
 function readProdForm(){
   const p = A.edit;
-  p.name = $("f_name").value.trim(); p.short = $("f_short").value.trim();
+  p.name = $("f_name").value.trim(); p.short = $("f_short").value.trim(); p.slug = ($("f_slug").value || "").trim();
   p.cat = $("f_cat").value.trim(); p.platform = $("f_plat").value.trim();
   p.img = pickImg($("f_img").value.trim(), p.img);
   p.desc = $("f_desc").value.trim();
@@ -1145,6 +1166,8 @@ function saveProd(){
   clean.short = clean.short || clean.name.slice(0, 18).toUpperCase();
   clean.cat = clean.cat || "Lainnya";
   clean.platform = clean.platform || "ANDROID";
+  clean.slug = slugify(clean.slug || clean.name);
+  if(DB.products.some(x => x.id !== clean.id && x.slug === clean.slug)){ err.textContent = "Link produk sudah dipakai produk lain. Ubah bagian link."; return; }
   const maxPop = Math.max(0, ...DB.products.filter(x => x.id !== clean.id).map(x => x.popular || 0));
   clean.popular = pop ? (p.popular || maxPop + 1) : 0;
   const idx = DB.products.findIndex(x => x.id === clean.id);
@@ -1207,7 +1230,6 @@ async function loadMyMember(){
 const planOf = t => PLANS.find(p => p.tier === t);
 const JN = {tier:0, slug:"", wa:""};
 let LASTKEY = "";
-$("mJoin").addEventListener("click", e => { e.preventDefault(); closeAll(); openJoinPage(); });
 $("mMember").addEventListener("click", e => { e.preventDefault(); closeAll(); openMemberPanel(); });
 $("reseller").addEventListener("click", e => { e.preventDefault(); openJoinPage(); });
 
@@ -1382,7 +1404,7 @@ $("modal").addEventListener("input", e => {
   if(e.target.id === "jn_slug"){ const v = e.target.value.trim().toLowerCase(), pv = $("jn_prev"); if(pv) pv.textContent = /^[a-z0-9-]{3,30}$/.test(v) ? "Link tokomu: " + slugLink(v) : ""; }
 });
 
-const LST = {pending:["p","Menunggu bayar"], paid:["s","Masuk saldo"], expired:["x","Kedaluwarsa"], requested:["p","WD diminta"], done:["s","WD selesai"], rejected:["x","WD ditolak"], ok:["m","Koreksi"]};
+const LST = {pending:["p","Menunggu bayar"], paid:["s","Masuk saldo"], expired:["dead","Kedaluwarsa"], requested:["p","WD diminta"], done:["s","WD selesai"], rejected:["dead","WD ditolak"], ok:["m","Koreksi"]};
 function ledRow(l, adm){
   const [c, t] = LST[l.status] || ["m", l.status], neg = l.amount < 0;
   const kind = l.kind === "sale" ? "Penjualan " + (l.order_id || "") : l.kind === "withdraw" ? "Penarikan saldo" : "Koreksi saldo";
@@ -1390,13 +1412,15 @@ function ledRow(l, adm){
 }
 /* --- panel reseller (untuk pemilik toko reseller) --- */
 async function loadMyReseller(){
-  RSME = null; const mi = $("mReseller"); if(mi) mi.style.display = "none";
+  RSME = null; RSBAL = 0; const mi = $("mReseller"); if(mi) mi.style.display = "none";
   if(!SB || !ME) return;
   const {data:t} = await SB.from("reseller_terms").select("slug,discount").eq("email", ME.email).maybeSingle();
   if(!t) return;
   const {data:sh} = await SB.from("reseller_shops").select("shop,prices,pay").eq("slug", t.slug).maybeSingle();
   RSME = {slug:t.slug, discount:Number(t.discount) || 0, shop:(sh && sh.shop) || {}, prices:(sh && sh.prices) || {}, pay:(sh && sh.pay) || {mode:"web"}};
   if(mi) mi.style.display = "";
+  if((RSME.pay.mode || "web") === "web"){ const bl = await SB.rpc("rs_balance", {s:t.slug}); RSBAL = Number(bl.data) || 0; }
+  renderDrawer();
 }
 $("mReseller").addEventListener("click", e => { e.preventDefault(); closeAll(); openRsPanel(); });
 const slugLink = sl => SUBDOMAINS_ON ? "https://" + sl + "." + MAIN_HOST : "https://" + MAIN_HOST + "/?r=" + sl;
@@ -1427,7 +1451,7 @@ async function openRsPanel(){
 }
 async function loadRsBal(){
   const [b, l] = await Promise.all([SB.rpc("rs_balance", {s:RSME.slug}), SB.from("reseller_ledger").select("*").eq("slug", RSME.slug).order("created_at", {ascending:false}).limit(100)]);
-  RSD.bal = Number(b.data) || 0; RSD.led = l.data || [];
+  RSD.bal = Number(b.data) || 0; RSD.led = l.data || []; RSBAL = RSD.bal; renderDrawer();
   RSD.pend = RSD.led.filter(x => x.kind === "sale" && x.status === "pending").reduce((a, x) => a + Number(x.amount), 0);
 }
 function readRs(){
@@ -1450,8 +1474,8 @@ function drawRs(){
     : `<label class="lbl">Gambar QRIS-mu (dari bank, e-wallet, atau mana saja)</label><input class="in" type="file" accept="image/*" data-rs="qrisimg">${d.img ? `<img class="qp" src="${esc(d.img)}" alt="QRIS">` : ""}
        <p class="empty-adm">Pembeli scan, bayar, lalu kirim bukti ke WhatsApp-mu. Kamu konfirmasi sendiri. Pakai gambar QR yang jelas dan tidak buram.</p>`;
   openModal(`<div class="hd"><h5>Panel Reseller</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox">
-    <div class="bcard"><label class="lbl">Saldo tersedia</label><div style="font-size:24px;font-weight:800">${rp(d.bal || 0)}</div><small style="color:var(--muted)">Menunggu pembayaran lunas: ${rp(d.pend || 0)}</small>
-      <div class="ordact"><button type="button" data-rsact="settle">Perbarui saldo</button><button type="button" data-rsact="wd">Tarik saldo</button><button type="button" data-rsact="ledger">Riwayat saldo</button></div></div>
+    ${(RSME.pay.mode || "web") === "web" ? `<div class="bcard"><label class="lbl">Saldo tersedia</label><div style="font-size:24px;font-weight:800">${rp(d.bal || 0)}</div><small style="color:var(--muted)">Menunggu pembayaran lunas: ${rp(d.pend || 0)}</small>
+      <div class="ordact"><button type="button" data-rsact="settle">Perbarui saldo</button><button type="button" data-rsact="wd">Tarik saldo</button><button type="button" data-rsact="ledger">Riwayat saldo</button></div></div>` : ""}
     <div class="bcard"><label class="lbl">Link tokomu</label><input class="in" readonly value="${esc(rsLink())}" onclick="this.select()"><div class="ordact"><button type="button" data-rsact="copy">Salin link</button><button type="button" data-rsact="orders">Order tokoku</button></div></div>
     <div class="bcard"><label class="lbl">Logo toko</label><div style="display:flex;gap:12px;align-items:center"><div class="logo" style="width:56px;height:56px;flex:none">${d.logo ? `<img src="${esc(d.logo)}" alt="">` : esc((d.name[0] || "V").toUpperCase())}</div><div style="flex:1"><input class="in" type="file" accept="image/*" data-rs="logo" aria-label="Unggah logo">${d.logo ? '<button type="button" class="btn sec sm" data-rsact="logodel" style="margin-top:6px">Hapus logo</button>' : ""}</div></div><p class="empty-adm">Persegi (PNG/JPG), otomatis dikecilkan. Tekan Simpan toko setelah memilih.</p></div>
     <div class="bcard"><label class="lbl"><input type="checkbox" id="rs_open"${d.open ? " checked" : ""}> Buka program reseller di tokoku</label>
@@ -1565,7 +1589,7 @@ async function loadAdminResellers(){
   const sm = {}; (b.data || []).forEach(x => sm[x.slug] = x);
   ARS = (a.data || []).map(t => Object.assign({}, t, {shop:(sm[t.slug] || {}).shop || {}, pay:(sm[t.slug] || {}).pay || {}}));
   const ML = {web:"QRIS web", qrispw:"QRIS.PW sendiri", manual:"QRIS manual"};
-  el.innerHTML = ARS.length ? ARS.map(r => `<div class="hist"><b>${esc(r.shop.name || r.slug)}</b>${esc(r.email)}<br><small>${esc(slugLink(r.slug))}<br>Pembayaran: ${esc(ML[r.pay.mode] || "QRIS web")}<br>Saldo reseller: <b>${rp((bm[r.slug] || {}).balance || 0)}</b> · menunggu bayar ${rp((bm[r.slug] || {}).pending || 0)}${Number((bm[r.slug] || {}).wd_pending) ? ' · <b style="color:#f59e0b">' + bm[r.slug].wd_pending + ' penarikan diminta</b>' : ""}</small>
+  el.innerHTML = ARS.length ? ARS.map(r => `<div class="hist"><b>${esc(r.shop.name || r.slug)}</b>${esc(r.email)}<br><small>${esc(slugLink(r.slug))}<br>Pembayaran: ${esc(ML[r.pay.mode] || "QRIS web")}${(r.pay.mode || "web") === "web" ? `<br>Saldo reseller: <b>${rp((bm[r.slug] || {}).balance || 0)}</b> · menunggu bayar ${rp((bm[r.slug] || {}).pending || 0)}${Number((bm[r.slug] || {}).wd_pending) ? ' · <b style="color:#f59e0b">' + bm[r.slug].wd_pending + ' penarikan diminta</b>' : ""}` : ""}</small>
     <div class="ordact"><input class="in" type="number" style="width:90px;flex:none" data-disc="${esc(r.slug)}" value="${Number(r.discount) || 0}" min="0" max="90" aria-label="Diskon modal persen"><button type="button" data-act="rsLed" data-slug="${esc(r.slug)}">Mutasi saldo</button><button type="button" data-act="rsDom" data-slug="${esc(r.slug)}">Domain</button><button type="button" data-act="rsDisc" data-slug="${esc(r.slug)}">Simpan diskon %</button><button type="button" data-act="rsDel" data-slug="${esc(r.slug)}">Hapus</button></div></div>`).join("") : '<p class="empty-adm">Belum ada reseller.</p>';
 }
 /* --- admin: paket & member reseller --- */
@@ -1577,7 +1601,7 @@ async function loadAdminMembers(){
   const [pl, mm, sg] = await Promise.all([SB.from("reseller_plans").select("*").order("tier"), SB.from("reseller_members").select("*").order("created_at", {ascending:false}), SB.from("reseller_signups").select("*").order("created_at", {ascending:false}).limit(15)]);
   if(pl.error){ el.innerHTML = '<p class="empty-adm">Gagal memuat: ' + esc(pl.error.message) + '. Sudah menjalankan SQL paket reseller?</p>'; return; }
   ADMPLANS = pl.data || [];
-  const SB_ = {pending:["p","Menunggu bayar"], paid:["s","Lunas"], expired:["x","Kedaluwarsa"]};
+  const SB_ = {pending:["p","Menunggu bayar"], paid:["s","Lunas"], expired:["dead","Kedaluwarsa"]};
   el.innerHTML = `<div class="bcard" style="margin-top:16px"><b>Paket reseller</b><p class="empty-adm">Harga, diskon, dan fitur tiap paket. Member lama tetap memakai diskon saat mereka bergabung.</p>
     ${ADMPLANS.map(p => `<div class="bcard" data-tier="${p.tier}"><b>Paket ${p.tier}</b>
       <label class="lbl">Nama</label><input class="in" data-pf="name" value="${esc(p.name)}" maxlength="30">
@@ -1667,12 +1691,12 @@ function admShop(){
 let AORD = [];
 function admOrders(){
   setTimeout(loadAdminOrders, 0);
-  return `<div class="ordtools"><input class="in" id="ordQ" placeholder="Cari order, produk, nama, WA"><button class="btn sec sm" data-act="ordReload">Muat ulang</button></div><div id="ordRows"><p class="empty-adm">Memuat...</p></div>`;
+  return `<div class="ordtools"><input class="in" id="ordQ" placeholder="Cari ID order, ID transaksi, nama, produk, WA"><button class="btn sec sm" data-act="ordReload">Muat ulang</button></div><div id="ordRows"><p class="empty-adm">Memuat...</p></div>`;
 }
 async function loadAdminOrders(){
   const el = $("ordRows"); if(!el) return;
   if(!SB){ el.innerHTML = '<p class="empty-adm">Daftar order semua pembeli butuh Supabase aktif.</p>'; return; }
-  const {data, error} = await SB.from("orders").select("data").order("created_at", {ascending:false}).limit(100);
+  const {data, error} = await SB.from("orders").select("data").order("created_at", {ascending:false}).limit(400);
   if(error){ el.innerHTML = '<p class="empty-adm">Gagal memuat: ' + esc(error.message) + '</p>'; return; }
   AORD = (data || []).map(r => r.data);
   drawAdminOrders();
@@ -1682,9 +1706,9 @@ async function loadAdminOrders(){
 function drawAdminOrders(){
   const el = $("ordRows"); if(!el) return;
   const q = (($("ordQ") || {}).value || "").toLowerCase();
-  const list = AORD.filter(o => !q || [o.id, o.name, o.pkg, o.buyer, o.wa].join(" ").toLowerCase().includes(q));
+  const list = AORD.filter(o => !q || [o.id, o.trx, o.name, o.pkg, o.buyer, o.wa, o.reseller, o.time].join(" ").toLowerCase().includes(q));
   el.innerHTML = list.length ? list.map(o => { const st = ordState(o), [c, l] = BADGE[st];
-    return `<div class="hist"><b>${esc(o.name)}</b>${esc(o.pkg)} × ${o.qty} — ${rp(o.total)}<br><small>${esc(o.id)} · ${esc(o.time)}<br>Pembeli: ${esc(o.buyer || "-")} · WA: ${esc(o.wa || "-")}${o.reseller ? "<br>Reseller: " + esc(o.reseller) + (o.rhak ? " · hak reseller " + rp(o.rhak) + " · biaya layanan " + rp(o.fee || 0) : " (" + (o.rmode === "manual" ? "QRIS manual" : "QRIS sendiri") + ")") : ""}</small><br><span class="bdg ${c}">${l}</span>
+    return `<div class="hist"><b>${esc(o.name)}</b>${esc(o.pkg)} × ${o.qty} — ${rp(o.total)}<br><small>${esc(o.id)} · ${esc(o.time)}${o.trx ? "<br>ID transaksi: " + esc(o.trx) : ""}<br>Pembeli: ${esc(o.buyer || "-")} · WA: ${esc(o.wa || "-")}${o.reseller ? "<br>Reseller: " + esc(o.reseller) + (o.rhak ? " · hak reseller " + rp(o.rhak) + " · biaya layanan " + rp(o.fee || 0) : " (" + (o.rmode === "manual" ? "QRIS manual" : "QRIS sendiri") + ")") : ""}</small><br><span class="bdg ${c}">${l}</span>
       <div class="ordact">${o.trx && st !== "s" ? `<button type="button" data-act="ordCheck" data-oid="${esc(o.id)}">Cek status</button>` : ""}${waNum(o.wa) ? `<a href="https://wa.me/${waNum(o.wa)}" target="_blank" rel="noopener">Chat pembeli</a>` : ""}</div></div>`; }).join("") : '<p class="empty-adm">Belum ada order.</p>';
 }
 document.addEventListener("input", e => { if(e.target && e.target.id === "ordQ") drawAdminOrders(); });
@@ -1782,7 +1806,7 @@ $("admBody").addEventListener("click", async e => {
   const act = b.dataset.act, i = +b.dataset.i;
   if(act === "addProd"){
     A.edit = {id:"p" + Date.now().toString(36), name:"", short:"", cat:cats()[0] || "", platform:"ANDROID", hue:190 + Math.floor(Math.random()*100),
-              img:"", desc:"", how:[], packages:[["1 Hari",0]], sold:0, popular:0, pop:false, isNew:true};
+              img:"", desc:"", how:[], packages:[["1 Hari",0]], sold:0, popular:0, pop:false, isNew:true, slug:""};
     renderAdmin(); window.scrollTo(0,0);
   } else if(act === "edit"){
     const p = clone(DB.products.find(x => x.id === b.dataset.id));
@@ -1926,7 +1950,8 @@ $("admBody").addEventListener("input", e => {
 
 /* ---------- init ---------- */
 refreshUser(); refreshAll();
-if(!SB) document.documentElement.classList.remove("rs-wait");
+if(!routeFromUrl(true)) PENDING_SLUG = slugFromUrl();
+if(!SB){ document.documentElement.classList.remove("rs-wait"); if(PENDING_SLUG){ flash("Produk tidak ditemukan."); PENDING_SLUG = ""; } }
 if(SB){ const warm = () => SB.functions.invoke("qris", {body:{action:"ping"}}).catch(() => {}); setTimeout(warm, 1500); document.addEventListener("visibilitychange", () => { if(!document.hidden) warm(); }); (async () => {
   const rsP = loadResellerShop();
   const {data:s} = await SB.auth.getSession();
@@ -1934,6 +1959,7 @@ if(SB){ const warm = () => SB.functions.invoke("qris", {body:{action:"ping"}}).c
   SB.auth.onAuthStateChange(ev => { if(ev === "PASSWORD_RECOVERY") openModal(`<div class="hd"><h5>Password baru</h5><button class="x" data-close aria-label="Tutup">✕</button></div><input class="in" id="np_pw" type="password" placeholder="Password baru (minimal 6 karakter)" autocomplete="new-password"><div class="err" id="np_err" role="alert"></div><button class="btn" id="np_save" type="button" style="width:100%;margin-top:8px">Simpan password</button>`); });
   loadMyReseller(); loadMyMember(); loadPlans();
   await Promise.all([syncRemote(), rsP]);
+  if(PENDING_SLUG){ if(!routeFromUrl(true)){ flash("Produk tidak ditemukan."); try{ history.replaceState({}, "", urlFor(null)); }catch(_){} } PENDING_SLUG = ""; }
   document.addEventListener("visibilitychange", () => { if(!document.hidden) syncRemote(); });
   setInterval(() => { if(!document.hidden) syncRemote(); }, 30000);
 })(); }
