@@ -1,0 +1,275 @@
+name: Cek web otomatis
+
+# Jalan otomatis setiap index.html / tools diubah di cabang main.
+# Aman  -> kabar "✅ Web aman" ke HP.
+# Gagal -> index.html dikembalikan otomatis ke versi aman terakhir + kabar ke HP.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - ".github/workflows/cek-web.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cek-web
+  cancel-in-progress: false
+
+jobs:
+  cek:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Siapkan pemeriksa
+        run: |
+          cat > "$RUNNER_TEMP/check.mjs" <<'EOF'
+          #!/usr/bin/env node
+          // Pemeriksa otomatis index.html. Tanpa dependensi (Node 20+).
+          // Pemakaian: node tools/check.mjs [index.html]
+          // Keluar dengan kode 1 jika ada pemeriksaan yang gagal.
+          import fs from "node:fs";
+          import vm from "node:vm";
+          import path from "node:path";
+
+          const FILE = process.argv[2] || "index.html";
+          const html = fs.readFileSync(FILE, "utf8");
+          let failed = 0, total = 0;
+          const ok = (name, pass, detail = "") => {
+            total++; if (!pass) failed++;
+            console.log((pass ? "✅ " : "❌ ") + name + (detail ? " — " + detail : ""));
+          };
+
+          // ---------- 1. dasar ----------
+          ok("File ada isinya dan berbentuk HTML", /^\s*<!doctype html/i.test(html) && /<\/html>\s*$/i.test(html));
+          ok("Ukuran wajar (< 3 MB)", html.length < 3_000_000, (html.length / 1024).toFixed(0) + " KB");
+          const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+          ok("Ada skrip inline", scripts.length >= 2, scripts.length + " skrip");
+
+          // ---------- 2. sintaks ----------
+          let syntaxOk = true;
+          scripts.forEach((code, i) => {
+            try { new vm.Script(code, { filename: "skrip-" + (i + 1) }); }
+            catch (e) { syntaxOk = false; ok("Sintaks skrip " + (i + 1), false, e.message); }
+          });
+          if (syntaxOk) ok("Sintaks semua skrip benar", true);
+
+          // ---------- 3. kebocoran rahasia ----------
+          const bocor = [];
+          for (const [nama, re] of [
+            ["service_role", /service_role/i], ["sb_secret_", /sb_secret_/], ["token Cloudflare cfut_", /cfut_[A-Za-z0-9]{10,}/],
+            ["kunci Drip live", /drip_sk_live_/], ["token GitHub", /gh[pousr]_[A-Za-z0-9]{20,}/], ["kunci privat", /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
+            ["kunci API reseller", /vz_live_[a-f0-9]{20,}/],
+          ]) if (re.test(html)) bocor.push(nama);
+          for (const m of html.matchAll(/eyJ[A-Za-z0-9_-]{10,}\.([A-Za-z0-9_-]{10,})\.[A-Za-z0-9_-]{10,}/g)) {
+            try { const role = JSON.parse(Buffer.from(m[1], "base64url").toString()).role; if (role && role !== "anon") bocor.push("JWT role=" + role); } catch { /* bukan JWT */ }
+          }
+          ok("Tidak ada rahasia di dalam file", bocor.length === 0, bocor.join(", "));
+
+          // ---------- 4. konfigurasi ----------
+          const url = (html.match(/const SUPABASE_URL = "([^"]*)"/) || [])[1] || "";
+          const key = (html.match(/const SUPABASE_KEY = "([^"]*)"/) || [])[1] || "";
+          ok("SUPABASE_URL terisi (https)", /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(url), url);
+          ok("SUPABASE_KEY terisi (anon/publishable)", /^eyJ/.test(key) || /^sb_publishable_/.test(key));
+          ok("Bendera konfigurasi ada", /const SUBDOMAINS_ON = (true|false)/.test(html) && /const PRODUCT_PATHS = (true|false)/.test(html) && /const MAIN_HOST = "[a-z0-9.-]+"/.test(html));
+
+          // ---------- 5. id elemen ----------
+          const staticHtml = html.replace(/<script[\s\S]*?<\/script>/g, "").replace(/<style[\s\S]*?<\/style>/g, "");
+          const idsAll = new Set([...html.matchAll(/id="([^"$]+)"/g)].map((m) => m[1]));
+          const staticIds = [...staticHtml.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+          const dups = staticIds.filter((x, i) => staticIds.indexOf(x) !== i);
+          ok("Tidak ada id ganda di HTML", dups.length === 0, [...new Set(dups)].join(", "));
+          const dinamis = /^(sh_|a_|jn_|np_|wd_|rs_|mm_|pl_|mem_|adm_|f_|pf_|ordQ)/;
+          const used = new Set([...html.matchAll(/\$\("([A-Za-z0-9_]+)"\)/g)].map((m) => m[1]));
+          const hilang = [...used].filter((u) => !idsAll.has(u) && !dinamis.test(u));
+          ok("Semua elemen yang dirujuk skrip ada", hilang.length === 0, hilang.join(", "));
+
+          // ---------- 6. uji jalan dengan DOM tiruan ----------
+          const sleep = () => new Promise((r) => setImmediate(r));
+          const unhandled = [];
+          process.on("unhandledRejection", (e) => unhandled.push(e));
+
+          function mkEl() {
+            const store = {};
+            const styleP = new Proxy({}, { set: () => true, get: () => "" });
+            const el = new Proxy(function () {}, {
+              get(_, k) {
+                if (k in store) return store[k];
+                switch (k) {
+                  case "then": return undefined;
+                  case "style": return styleP;
+                  case "classList": return { add() {}, remove() {}, toggle() {}, contains: () => false };
+                  case "dataset": return (store.dataset ||= {});
+                  case "files": case "children": case "childNodes": return [];
+                  case "hidden": return true;
+                  case "checked": return false;
+                  case "value": case "textContent": case "innerHTML": case "href": case "content": case "src": case "id": case "className": return "";
+                  case "querySelectorAll": return () => [];
+                  case "getAttribute": return () => null;
+                  case "addEventListener": case "removeEventListener": return () => {};
+                  case Symbol.toPrimitive: return () => "";
+                  default: return (...a) => el;
+                }
+              },
+              set(_, k, v) { store[k] = v; return true; },
+              apply() { return el; },
+            });
+            return el;
+          }
+          function fakeSupabase() {
+            const chain = (one) => new Proxy(function () {}, {
+              get(_, k) {
+                if (k === "then") return (res) => res({ data: one ? null : [], error: null, count: 0 });
+                if (k === "maybeSingle" || k === "single") return () => chain(true);
+                return () => chain(one);
+              },
+              apply() { return chain(one); },
+            });
+            return { createClient: () => ({
+              from: () => chain(false), rpc: () => chain(true),
+              auth: { getSession: async () => ({ data: { session: null } }), onAuthStateChange: () => ({}), signOut: async () => ({}) },
+              functions: { invoke: async () => ({ data: { success: true }, error: null }) },
+            }) };
+          }
+          async function boot({ host = "vinzprostore.web.id", pathname = "/", search = "", rs = null, theme = true, withSB = true } = {}) {
+            const store = theme ? { vinz_theme: "dark" } : {};
+            const ctx = {
+              console, URL, URLSearchParams, TextEncoder, atob, btoa, Intl, setImmediate, queueMicrotask,
+              localStorage: { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } },
+              location: { hostname: host, pathname, search, protocol: "https:", origin: "https://" + host },
+              history: { pushState() {}, replaceState() {} },
+              navigator: { clipboard: {} }, setTimeout: () => 0, setInterval: () => 0, clearTimeout() {}, clearInterval() {}, requestAnimationFrame: () => 0,
+              fetch: async () => ({ ok: false, json: async () => ({}), text: async () => "" }), confirm: () => true, prompt: () => "", alert() {},
+              matchMedia: () => ({ matches: false, addEventListener() {} }), IntersectionObserver: class { observe() {} },
+              scrollTo() {}, addEventListener() {},
+            };
+            ctx.sessionStorage = ctx.localStorage; ctx.window = ctx;
+            ctx.document = { documentElement: mkEl(), body: mkEl(), title: "", getElementById: () => mkEl(), querySelector: () => mkEl(), querySelectorAll: () => [], addEventListener() {}, createElement: () => mkEl(), cookie: "" };
+            if (rs) ctx.__RS = rs;
+            if (withSB) ctx.supabase = fakeSupabase();
+            vm.createContext(ctx);
+            const before = unhandled.length;
+            for (const [i, s] of scripts.entries()) vm.runInContext(s, ctx, { filename: "skrip-" + (i + 1) });
+            for (let i = 0; i < 8; i++) await sleep();
+            const run = (code) => vm.runInContext(code, ctx);
+            return { ctx, run, nUnhandled: unhandled.length - before };
+          }
+
+          const skenario = [
+            ["Beranda (pengunjung baru, memilih tema)", { theme: false }],
+            ["Beranda (tema sudah dipilih)", {}],
+            ["Beranda tanpa Supabase (mode lokal)", { withSB: false }],
+            ["Link produk /produk/…", { pathname: "/produk/phantom-android-ios" }],
+            ["Link produk bentuk ?produk=…", { search: "?produk=tidak-ada" }],
+            ["Toko reseller (data disuntik Worker)", { host: "pinstore.vinzprostore.web.id", rs: { slug: "pinstore", shop: { name: "Pinstore", wa: "628111222333", open: true, offers: [{ name: "Paket A", price: 20000 }] }, prices: {}, pay: { mode: "web" } } }],
+            ["Toko reseller lewat ?r=", { search: "?r=pinstore" }],
+            ["Domain milik reseller", { host: "pinstore.com" }],
+          ];
+          for (const [nama, opt] of skenario) {
+            try {
+              const { nUnhandled } = await boot(opt);
+              ok("Memuat tanpa error: " + nama, nUnhandled === 0, nUnhandled ? unhandled.at(-1)?.message : "");
+            } catch (e) { ok("Memuat tanpa error: " + nama, false, e.name + ": " + e.message); }
+          }
+
+          // ---------- 7. uji logika ----------
+          try {
+            const { run } = await boot({});
+            const t = (nama, kode, harapan) => { let v; try { v = run(kode); } catch (e) { v = "ERROR " + e.message; } ok("Logika: " + nama, JSON.stringify(v) === JSON.stringify(harapan), JSON.stringify(v) !== JSON.stringify(harapan) ? "hasil " + JSON.stringify(v) : ""); };
+            t("rp(5000)", "rp(5000).replace(/\\s/g,'')", "Rp5.000");
+            t("slugify nama produk", "slugify('HG Cheat FF')", "hg-cheat-ff");
+            t("slugify aksen & simbol", "slugify('Café Çrème ??')", "cafe-creme");
+            t("waNum 08… → 62…", "waNum('0812-3456-7890')", "6281234567890");
+            t("slug produk unik", "(()=>{const s=DB.products.map(p=>p.slug);return new Set(s).size===s.length && s.every(Boolean)})()", true);
+            t("setiap paket punya harga > 0", "DB.products.every(p=>p.packages.length>0&&p.packages.every(k=>k[1]>0))", true);
+            t("harga member mengurangi harga", "(()=>{const a=DB.products[0].packages[0][1];RAW=DB;MEMBER={discount:10};const d=overlayDB(RAW);const b=d.products[0].packages[0][1];MEMBER=null;return b===Math.round(a*0.9)&&b<a})()", true);
+            t("admin tidak ikut harga member (aman disimpan)", "(()=>{RAW=DB;MEMBER={discount:10};ME={email:'alpintandjung@gmail.com',name:'a',id:'1'};const same=overlayDB(RAW)===RAW;MEMBER=null;ME=null;return same})()", true);
+            t("harga reseller menimpa harga toko", "(()=>{RAW=DB;const p=DB.products[0];RS_ACTIVE={slug:'x',shop:{name:'Tes'},prices:{[p.id+'|0']:12345},pay:{mode:'web'}};const d=overlayDB(RAW);const v=d.products[0].packages[0][1];const nm=d.shop.brandA;RS_ACTIVE=null;return [v,nm]})()", [12345, "Tes"]);
+            t("normDB menjaga slug & menyaring produk tanpa paket", "normDB({products:[{id:'a',name:'Satu',packages:[['1',1000]]},{id:'b',name:'Kosong',packages:[]}]}).products.map(p=>p.slug)", ["satu"]);
+          } catch (e) { ok("Uji logika berjalan", false, e.message); }
+
+          // ---------- 8. paritas dengan Worker (bila filenya ada) ----------
+          const wf = ["cloudflare-worker.js", "tools/cloudflare-worker.js"].map((p) => path.resolve(path.dirname(FILE), p)).find((p) => fs.existsSync(p));
+          if (wf) {
+            try {
+              const w = fs.readFileSync(wf, "utf8");
+              const wcode = w.match(/const slugify = [^\n]*\n/)[0] + w.match(/function withSlugs[\s\S]*?\n}\n/)[0];
+              const worker = new Function(wcode + "; return {withSlugs};")();
+              const { run } = await boot({});
+              const sample = [{ name: "HG Cheat FF", packages: [["a", 1]] }, { name: "HG Cheat FF", packages: [["a", 1]] }, { name: "Café Çrème", packages: [["a", 1]] }, { name: "Kosong", packages: [] }, { name: "X", slug: "Custom Link!", packages: [["a", 1]] }, { name: "???", packages: [["a", 1]] }, { name: "Panjang ".repeat(20), packages: [["a", 1]] }];
+              const klien = run("normDB(" + JSON.stringify({ products: sample }) + ").products.map(p=>p.slug)");
+              const wrk = worker.withSlugs(sample).map((p) => p.slug);
+              ok("Slug web = slug Worker (link produk konsisten)", JSON.stringify(klien) === JSON.stringify(wrk), JSON.stringify(klien) + " vs " + JSON.stringify(wrk));
+            } catch (e) { ok("Slug web = slug Worker", false, e.message); }
+          }
+
+          console.log("\n" + (failed ? `❌ ${failed} dari ${total} pemeriksaan GAGAL` : `✅ Semua ${total} pemeriksaan lolos`));
+          process.exit(failed ? 1 : 0);
+          EOF
+
+      - name: Jalankan pemeriksaan
+        id: cek
+        run: |
+          set +e
+          node "$RUNNER_TEMP/check.mjs" index.html > hasil.txt 2>&1
+          echo "kode=$?" >> "$GITHUB_OUTPUT"
+          cat hasil.txt
+          { echo '### Hasil pemeriksaan'; echo '```'; cat hasil.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+
+      - name: Kabari HP - aman
+        if: steps.cek.outputs.kode == '0'
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          PESAN: ${{ github.event.head_commit.message }}
+        run: |
+          [ -z "$NTFY_TOPIC" ] && exit 0
+          ringkas="$(tail -n 1 hasil.txt)"
+          jq -n --arg t "$NTFY_TOPIC" --arg m "${ringkas}"$'\n'"Perubahan: ${PESAN:0:80}" \
+            '{topic:$t,title:"✅ Web aman",message:$m,priority:3,tags:["white_check_mark"]}' \
+            | curl -s -H "Content-Type: application/json" -d @- https://ntfy.sh/ > /dev/null
+
+      - name: Kembalikan otomatis ke versi aman terakhir
+        id: balik
+        if: steps.cek.outputs.kode != '0' && github.event_name == 'push'
+        run: |
+          set +e
+          echo "dibalik=tidak" >> "$GITHUB_OUTPUT"
+          sebelum="${{ github.event.before }}"
+          if [ -z "$sebelum" ] || echo "$sebelum" | grep -qE '^0+$'; then echo "Tidak ada versi sebelumnya."; exit 0; fi
+          if ! git show "$sebelum:index.html" > sebelumnya.html 2>/dev/null; then echo "index.html versi lama tidak ditemukan."; exit 0; fi
+          if ! node "$RUNNER_TEMP/check.mjs" sebelumnya.html > hasil-lama.txt 2>&1; then echo "Versi sebelumnya juga bermasalah, tidak dikembalikan."; exit 0; fi
+          cp sebelumnya.html index.html
+          git config user.name "cek-web-bot"
+          git config user.email "cek-web-bot@users.noreply.github.com"
+          git add index.html
+          git commit -m "Kembalikan index.html otomatis: pemeriksaan gagal pada ${GITHUB_SHA::7}"
+          if git push; then echo "dibalik=ya" >> "$GITHUB_OUTPUT"; fi
+          exit 0
+
+      - name: Kabari HP - ada masalah
+        if: steps.cek.outputs.kode != '0'
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          DIBALIK: ${{ steps.balik.outputs.dibalik }}
+        run: |
+          [ -z "$NTFY_TOPIC" ] && exit 0
+          gagal="$(grep '^❌' hasil.txt | head -6)"
+          if [ "$DIBALIK" = "ya" ]; then judul="❌ Perubahan bermasalah, sudah dikembalikan otomatis"; else judul="❌ Perubahan bermasalah, perlu diperbaiki"; fi
+          jq -n --arg t "$NTFY_TOPIC" --arg j "$judul" --arg m "$gagal" \
+            '{topic:$t,title:$j,message:$m,priority:5,tags:["rotating_light"]}' \
+            | curl -s -H "Content-Type: application/json" -d @- https://ntfy.sh/ > /dev/null
+
+      - name: Tandai merah bila gagal
+        if: steps.cek.outputs.kode != '0'
+        run: exit 1

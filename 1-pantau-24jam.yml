@@ -1,0 +1,145 @@
+name: Pantau web 24 jam
+
+# Setiap 5 menit memeriksa web, subdomain, database, fungsi server, dan QRIS.PW.
+# Ada masalah -> notifikasi ke HP (ntfy) + membuka Issue. Pulih -> kabar pulih + Issue ditutup.
+# Butuh 1 secret di GitHub: NTFY_TOPIC (nama topik di aplikasi ntfy).
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      tes_alarm:
+        description: "Tes alarm: sengaja membuat satu pemeriksaan gagal (untuk mencoba notifikasi HP)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: pantau
+  cancel-in-progress: true
+
+jobs:
+  pantau:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Periksa semua layanan
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TES_ALARM: ${{ inputs.tes_alarm && '1' || '0' }}
+          CEK_PRODUK: "0"
+        run: |
+          cat > pantau.mjs <<'EOF'
+          #!/usr/bin/env node
+          // Pemantau web 24 jam. Dijalankan tiap 5 menit oleh GitHub Actions.
+          // - Memeriksa web, subdomain, database, fungsi server, dan QRIS.PW.
+          // - Bila ada yang bermasalah: kirim notifikasi ke HP (ntfy) dan buka satu Issue GitHub.
+          // - Bila sudah pulih: kirim kabar pulih dan tutup Issue.
+          // Rahasia dibaca dari environment (GitHub Secrets): NTFY_TOPIC. GITHUB_TOKEN & GITHUB_REPOSITORY dari Actions.
+          import fs from "node:fs";
+          import { pathToFileURL } from "node:url";
+
+          const JUDUL_ISSUE = "🚨 Web bermasalah";
+          const INGATKAN_MENIT = 60;
+
+          export async function main({ fetchImpl = fetch, env = process.env, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), log = console.log, html } = {}) {
+            html ??= fs.existsSync("index.html") ? fs.readFileSync("index.html", "utf8") : "";
+            const SB_URL = env.SB_URL || (html.match(/const SUPABASE_URL = "([^"]*)"/) || [])[1] || "";
+            const SB_KEY = env.SB_KEY || (html.match(/const SUPABASE_KEY = "([^"]*)"/) || [])[1] || "";
+            const SITE = (env.SITE_URL || "https://vinzprostore.web.id").replace(/\/$/, "");
+            const host = new URL(SITE).hostname;
+
+            const cekHtml = (r, t) => r.status === 200 && /id="homeView"/.test(t);
+            const sbH = { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json" };
+            const cek = [
+              { nama: "Beranda web", url: SITE + "/", ok: cekHtml },
+              { nama: "Subdomain reseller (wildcard)", url: "https://pantau." + host + "/", ok: cekHtml },
+              SB_URL && { nama: "Database (Supabase)", url: SB_URL + "/rest/v1/store_data?id=eq.1&select=id", headers: sbH, ok: (r, t) => r.status === 200 && /"id"/.test(t) },
+              SB_URL && { nama: "Fungsi pembayaran (qris)", url: SB_URL + "/functions/v1/qris", method: "POST", headers: sbH, body: '{"action":"ping"}', ok: (r, t) => r.status === 200 && /"success"\s*:\s*true/.test(t) },
+              SB_URL && { nama: "Fungsi member", url: SB_URL + "/functions/v1/member", method: "POST", headers: sbH, body: '{"action":"ping"}', ok: (r, t) => (r.status === 401 || r.status === 400) && /error/.test(t) },
+              { nama: "QRIS.PW (penyedia pembayaran)", url: "https://qris.pw/", ok: (r) => r.status < 500 },
+              env.CEK_PRODUK === "1" && { nama: "Link produk (/produk/…)", url: SITE + "/produk/cek-otomatis", ok: cekHtml },
+              env.TES_ALARM === "1" && { nama: "Tes alarm (sengaja gagal)", url: SITE + "/__tes_alarm__", ok: () => false },
+            ].filter(Boolean);
+
+            async function satu(c, percobaan) {
+              const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 15000);
+              const t0 = Date.now();
+              try {
+                const r = await fetchImpl(c.url, { method: c.method || "GET", headers: c.headers, body: c.body, signal: ac.signal, redirect: "follow" });
+                const t = await r.text();
+                const ms = Date.now() - t0;
+                if (c.ok(r, t)) return { nama: c.nama, ok: true, ms };
+                return { nama: c.nama, ok: false, ms, alasan: "status " + r.status + (t ? " — " + t.slice(0, 80).replace(/\s+/g, " ") : "") };
+              } catch (e) {
+                return { nama: c.nama, ok: false, ms: Date.now() - t0, alasan: e.name === "AbortError" ? "tidak menjawab (timeout 15 detik)" : String(e.message || e) };
+              } finally { clearTimeout(tm); }
+            }
+            async function dgRetry(c) { const a = await satu(c); if (a.ok) return a; await sleep(5000); const b = await satu(c); return b.ok ? { ...b, catatan: "sempat gagal sekali" } : b; }
+
+            const hasil = await Promise.all(cek.map(dgRetry));
+            const rusak = hasil.filter((h) => !h.ok);
+            for (const h of hasil) log((h.ok ? "✅ " : "❌ ") + h.nama + (h.ok ? ` (${h.ms} ms)` : " — " + h.alasan));
+
+            // ---------- pelaporan ----------
+            const ntfy = async (judul, pesan, prioritas, tags) => {
+              if (!env.NTFY_TOPIC) { log("(NTFY_TOPIC belum diisi, notifikasi HP dilewati)"); return; }
+              try { await fetchImpl("https://ntfy.sh/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ topic: env.NTFY_TOPIC, title: judul, message: pesan, priority: prioritas, tags, click: SITE }) }); }
+              catch (e) { log("Gagal kirim ntfy: " + e.message); }
+            };
+            const repo = env.GITHUB_REPOSITORY, token = env.GITHUB_TOKEN;
+            const gh = async (method, p, body) => {
+              const r = await fetchImpl("https://api.github.com/repos/" + repo + p, { method, headers: { Authorization: "Bearer " + token, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+              return r.status === 204 ? {} : r.json();
+            };
+            let terbuka = null;
+            if (repo && token) {
+              const list = await gh("GET", "/issues?state=open&per_page=50");
+              terbuka = Array.isArray(list) ? list.find((i) => !i.pull_request && i.title === JUDUL_ISSUE) || null : null;
+            }
+            const waktu = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+            const ringkas = rusak.map((h) => "• " + h.nama + ": " + h.alasan).join("\n");
+
+            if (rusak.length) {
+              if (!terbuka) {
+                log("→ Masalah baru: membuka issue & mengirim notifikasi");
+                if (repo && token) await gh("POST", "/issues", { title: JUDUL_ISSUE, body: `Terdeteksi ${waktu} WIB\n\n${ringkas}\n\nIssue ini ditutup otomatis saat web pulih.` });
+                await ntfy("🚨 Web bermasalah", ringkas, 5, ["rotating_light"]);
+                return { status: "baru", rusak };
+              }
+              const umur = (Date.now() - new Date(terbuka.updated_at).getTime()) / 60000;
+              if (umur >= INGATKAN_MENIT) {
+                log("→ Masih bermasalah: mengingatkan");
+                await gh("POST", `/issues/${terbuka.number}/comments`, { body: `Masih bermasalah (${waktu} WIB)\n\n${ringkas}` });
+                await ntfy("🚨 Web MASIH bermasalah", ringkas, 4, ["rotating_light"]);
+                return { status: "ingatkan", rusak };
+              }
+              log("→ Masalah masih sama, belum perlu kabar lagi");
+              return { status: "sama", rusak };
+            }
+            if (terbuka) {
+              log("→ Pulih: menutup issue & mengirim kabar");
+              await gh("POST", `/issues/${terbuka.number}/comments`, { body: `Pulih ✅ (${waktu} WIB). Semua pemeriksaan normal.` });
+              await gh("PATCH", `/issues/${terbuka.number}`, { state: "closed", state_reason: "completed" });
+              await ntfy("✅ Web sudah pulih", "Semua pemeriksaan kembali normal.", 3, ["white_check_mark"]);
+              return { status: "pulih", rusak };
+            }
+            return { status: "aman", rusak };
+          }
+
+          if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+            main().then(() => process.exit(0)).catch((e) => { console.error("Pemantau error:", e); process.exit(1); });
+          }
+          EOF
+          node pantau.mjs | tee -a "$GITHUB_STEP_SUMMARY"
