@@ -340,6 +340,7 @@ textarea.in{resize:vertical;font-family:inherit;line-height:1.45}
 </style>
 </head>
 <body>
+<noscript><p style="padding:24px;text-align:center;font:16px system-ui">Aktifkan JavaScript di browser untuk memakai toko ini.</p></noscript>
 
 <!-- HOME -->
 <div id="homeView">
@@ -1285,18 +1286,6 @@ $("joinBody").addEventListener("click", e => {
   }
 });
 
-async function openJoin(){
-  if(!SB){ flash("Fitur ini butuh Supabase aktif."); return; }
-  if(!PLANS.length) await loadPlans();
-  const cur = MEMBER ? MEMBER.tier : 0, curP = planOf(cur);
-  openModal(`<div class="hd"><h5>Gabung Reseller</h5><button class="x" data-close aria-label="Tutup">✕</button></div><div class="rsbox">
-    <p class="empty-adm">Beli produk dengan harga reseller. Aktif otomatis setelah pembayaran QRIS terdeteksi.</p>
-    ${PLANS.map(p => { const owned = cur >= p.tier, diff = p.price - (curP ? curP.price : 0);
-      return `<div class="bcard"><b>${esc(p.name)}</b> · ${rp(p.price)}${cur && !owned ? ` <small>(upgrade ${rp(diff)})</small>` : ""}
-        <ul class="plf"><li>Harga reseller, diskon ${Number(p.discount)}%</li>${p.api ? "<li>API key + dokumentasi untuk web sendiri</li>" : ""}${p.store ? "<li>Web toko sendiri (subdomain), harga &amp; saldo sendiri</li>" : ""}</ul>
-        ${owned ? '<span class="bdg s">Paketmu</span>' : `<button type="button" class="btn" data-jn="pick" data-t="${p.tier}">${cur ? "Upgrade" : "Pilih paket"}</button>`}</div>`; }).join("") || '<p class="empty-adm">Paket belum tersedia.</p>'}
-    <a class="wa" href="${waLink("Halo admin, saya mau gabung reseller secara manual.")}" target="_blank" rel="noopener" style="text-decoration:none;display:block;text-align:center">Gabung manual lewat WhatsApp</a></div>`);
-}
 function joinConfirm(t){
   const p = planOf(t); if(!p) return; JN.tier = t;
   if(!ME){ closeAll(); flash("Masuk atau daftar dulu untuk bergabung."); openAuth("login"); return; }
@@ -1978,6 +1967,11 @@ async function syncRemote(){
   if(S.pid && !DB.products.find(p => p.id === S.pid)) S.pid = null;
   refreshAll();
 }
+
+/* ---------- jaring pengaman: kabari pengguna bila ada error tak terduga ---------- */
+{ let last = 0; const warn = () => { const n = Date.now(); if(n - last < 15000) return; last = n; try{ flash("Ada kendala di halaman. Muat ulang jika ada yang tidak berfungsi."); }catch(_){} };
+  window.addEventListener("error", e => { if(e && e.error) warn(); });
+  window.addEventListener("unhandledrejection", () => warn()); }
 </script>
 </body>
 </html>
